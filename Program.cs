@@ -274,6 +274,7 @@ namespace RSSSorter
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(rssurl);
             List<CSVLINES> rssCsv = new List<CSVLINES>();
+            XmlElement root = xmlDocument.DocumentElement;
             foreach(XmlNode node in xmlDocument.SelectNodes("/feed/entry"))
             {
                 rssCsv.Add(new CSVLINES
@@ -281,7 +282,8 @@ namespace RSSSorter
                     title = node["title"].InnerText,
                     url = node["link"].InnerText,
                     snippet = node["content"].InnerText,
-                    age= DateTime.Parse( node["updated"].InnerText)
+                    age= DateTime.Parse( node["updated"].InnerText),
+                    source = root["title"].InnerText
                 }) ;
             }
             return rssCsv.ToArray();
