@@ -17,8 +17,8 @@ namespace RSSSorter
         public string source { get; set; }
         public DateTime age { get; set; }
     }
-    class Program
-    {        
+    public class Program
+    {
         static void helpmenu()
         {
             Console.WriteLine("params are as follows and must be entered in order:");
@@ -34,7 +34,7 @@ namespace RSSSorter
         /// read in and validate cmdline arguments before moving onto core functionality
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             string listfolder;
             string highvaluelist;
@@ -130,7 +130,7 @@ namespace RSSSorter
         /// <param name="outputfolder"></param>
         /// <param name="agelimit"></param>
         /// <returns></returns>
-        private static async Task<bool> UpdateRSSlists(string rssfile, string highvaluelist, string discardlist,string outputfolder, int agelimit)
+        static async Task<bool> UpdateRSSlists(string rssfile, string highvaluelist, string discardlist,string outputfolder, int agelimit)
         {
             //determine if we are dealing with a new rss feed list or not
             try
@@ -160,7 +160,7 @@ namespace RSSSorter
         /// <param name="discardlist"></param>
         /// <param name="outputfolder"></param>
         /// <param name="agelimit"></param>
-        private static void oldlist(string rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
+        static void oldlist(string rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
         {
             List<CSVLINES> csv;
             List<CSVLINES> csvhighval;
@@ -191,7 +191,7 @@ namespace RSSSorter
         /// <param name="agelimit"></param>
         /// <param name="csv"></param>
         /// <param name="csvhighval"></param>
-        private static void updatelist(string rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit, List<CSVLINES> csv, List<CSVLINES> csvhighval)
+        static void updatelist(string rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit, List<CSVLINES> csv, List<CSVLINES> csvhighval)
         {
             List<Task<CSVLINES[]>> newalerts = File.ReadAllLines(rssfile).Select(async rssurl => await GetRssUpdate(rssurl)).ToList();
 
@@ -232,7 +232,7 @@ namespace RSSSorter
         /// <param name="csvhighval"></param>
         /// <param name="highvaluelist"></param>
         /// <param name="discardlist"></param>
-        private static void SortAlerts(CSVLINES[] alerts, ref List<CSVLINES> csv, ref List<CSVLINES> csvhighval, ref string[] highval, ref string[] discard)
+        static void SortAlerts(CSVLINES[] alerts, ref List<CSVLINES> csv, ref List<CSVLINES> csvhighval, ref string[] highval, ref string[] discard)
         {
             foreach(CSVLINES alert in alerts)
             {
@@ -269,7 +269,7 @@ namespace RSSSorter
         /// </summary>
         /// <param name="rssurl"></param>
         /// <returns></returns>
-        private static async Task<CSVLINES[]> GetRssUpdate(string rssurl)
+        static async Task<CSVLINES[]> GetRssUpdate(string rssurl)
         {
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(rssurl);
@@ -295,7 +295,7 @@ namespace RSSSorter
         /// <param name="csv"></param>
         /// <param name="agelimit"></param>
         /// <returns></returns>
-        private static List<CSVLINES> AgeTrim(List<CSVLINES> csv, int agelimit)
+        static List<CSVLINES> AgeTrim(List<CSVLINES> csv, int agelimit)
         {
             return csv.Where(i => i.age < DateTime.Now.AddDays(agelimit*-1)).ToList();
         }
