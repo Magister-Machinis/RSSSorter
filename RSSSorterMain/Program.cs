@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using CsvHelper;
 using System.Xml;
+using System.ServiceModel.Syndication;
+using System.Net.Http;
 
 namespace RSSSorter
 {
@@ -236,9 +238,9 @@ namespace RSSSorter
         {
             foreach(CSVLINES alert in alerts)
             {
-                if(discard.All(i => !alert.url.Contains(i)))
+                if(discard.All(i => !checkcontent(i, alert)))
                 {
-                    if(highval.Any(i => alert.url.Contains(i)))
+                    if(highval.Any(i => checkcontent(i, alert)))
                     {
                         if(csvhighval.Any(i => alert.url == i.url))
                         {
@@ -265,29 +267,45 @@ namespace RSSSorter
         }
 
         /// <summary>
+        /// checks if the noted content is present in the url, description, or title
+        /// </summary>
+        /// <param name="particle">string to look for</param>
+        /// <param name="line">csvline line item to check</param>
+        /// <returns></returns>
+        static bool checkcontent(string particle, CSVLINES line)
+        {
+            return (line.title.Contains(particle) || line.url.Contains(particle) || line.snippet.Contains(particle));
+        }
+
+        /// <summary>
         /// retrieve rss feed and parse into a list of CSVLINE objects. XML retrieval and parsing is pretty much copied from https://stackoverflow.com/questions/14904171/read-xml-from-url/14904529
         /// </summary>
         /// <param name="rssurl"></param>
         /// <returns></returns>
         static async Task<CSVLINES[]> GetRssUpdate(string rssurl)
         {
-            XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.Load(rssurl);
             List<CSVLINES> rssCsv = new List<CSVLINES>();
-            XmlElement root = xmlDocument.DocumentElement;
-            foreach(XmlNode node in xmlDocument.SelectNodes("/feed/entry"))
+            using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(rssurl).Result))
             {
-                rssCsv.Add(new CSVLINES
+                SyndicationFeed syndicationFeed = SyndicationFeed.Load(xmlReader);
+                
+                foreach(SyndicationItem item in syndicationFeed.Items)
                 {
-                    title = node["title"].InnerText,
-                    url = node["link"].InnerText,
-                    snippet = node["content"].InnerText,
-                    age= DateTime.Parse( node["updated"].InnerText),
-                    source = root["title"].InnerText
-                }) ;
+                    rssCsv.Add(new CSVLINES
+                    {
+                        title = item.Title.Text,
+                        url = item.Links.ToString(),
+                        snippet = item.Summary.Text,
+                        source = syndicationFeed.Title.Text,
+                        age = item.LastUpdatedTime.DateTime
+                    });
+                }
+
             }
             return rssCsv.ToArray();
         }
+
+        
 
         /// <summary>
         /// small function to remove entries beyond the agelimit
