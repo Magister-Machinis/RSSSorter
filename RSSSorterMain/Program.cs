@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -51,9 +51,9 @@ namespace RSSSorter
             }
 
             //validate folderpath for rss feed lists
-            if(Directory.Exists(args[1]))
+            if(Directory.Exists(args[0]))
             {
-                listfolder = args[1];
+                listfolder = args[0];
             }
             else
             {
@@ -63,9 +63,9 @@ namespace RSSSorter
             }
 
             //validate highvalue list
-            if (File.Exists(args[2]))
+            if (File.Exists(args[1]))
             {
-                highvaluelist = args[2];
+                highvaluelist = args[1];
             }
             else
             {
@@ -75,9 +75,9 @@ namespace RSSSorter
             }
             
             //validate discard list
-            if (File.Exists(args[3]))
+            if (File.Exists(args[2]))
             {
-                discardlist = args[3];
+                discardlist = args[2];
             }
             else
             {
@@ -86,9 +86,9 @@ namespace RSSSorter
                 return;
             }
             //validate folderpath for output
-            if (Directory.Exists(args[4]))
+            if (Directory.Exists(args[3]))
             {
-                outputfolder = args[4];
+                outputfolder = args[3];
             }
             else
             {
@@ -97,9 +97,9 @@ namespace RSSSorter
                 return;
             }
             //check for and validate agelimit
-            if (args.Length==6)
+            if (args.Length==4)
             {
-                if(int.TryParse(args[5], out agelimit))
+                if(int.TryParse(args[4], out agelimit))
                 {}
                 else
                 {
