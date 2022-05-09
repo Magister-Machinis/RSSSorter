@@ -26,6 +26,7 @@ namespace RSSSorter.Tests
                 Console.WriteLine(Path.GetFullPath("./"));
                 RSSSorter.Program.Main(new string[] { @".\input", @".\highval.txt", @".\discard.txt", @".\output", "30" });
                 RSSSorter.Program.Main(new string[] { @".\input", @".\highval.txt", @".\discard.txt", @".\output", "30" });
+                Assert.AreEqual(true, true);
             }
             finally
             {

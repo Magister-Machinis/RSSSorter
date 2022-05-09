@@ -111,6 +111,7 @@ namespace RSSSorter
 
             Task<bool>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(async rssfile => await UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist,outputfolder, agelimit)).ToArray();
 
+            Task.WaitAll(tasks);
             
             if(tasks.All(i => i.Result==true))
             {
@@ -203,6 +204,8 @@ namespace RSSSorter
             csv = AgeTrim(csv, agelimit);
             csvhighval = AgeTrim(csvhighval, agelimit);
 
+            Task.WaitAll(newalerts.ToArray());
+
             foreach(Task<CSVLINES[]> alerts in newalerts)
             {
                 SortAlerts(alerts.Result, ref csv, ref csvhighval, ref highval, ref discard);
@@ -294,7 +297,7 @@ namespace RSSSorter
                     rssCsv.Add(new CSVLINES
                     {
                         Title = item.Title.Text,
-                        Url = string.Join(", ", item.Links.Select(x => x.Uri.AbsoluteUri)),                        
+                        Url = item.Links.ToString(),                        
                         Source = syndicationFeed.Title.Text,
                         Age = item.LastUpdatedTime.DateTime
                     });
