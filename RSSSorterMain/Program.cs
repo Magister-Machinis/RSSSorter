@@ -138,7 +138,7 @@ namespace RSSSorter
             //determine if we are dealing with a new rss feed list or not
             //try
             //{
-                if (!File.Exists(Path.Combine(outputfolder, rssfile.Name.Replace(".txt", ".csv"))))
+                if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
                 {
                     updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
                 }
@@ -167,14 +167,20 @@ namespace RSSSorter
         {
             List<CSVLINES> csv;
             List<CSVLINES> csvhighval;
-            using (StreamReader file = new StreamReader(Path.Combine(outputfolder, rssfile.Name.Replace(".txt", ".csv"))))
+
+            FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
+            
+            using (StreamReader file = new StreamReader(normalvalpath.FullName))
             {
                 using(CsvReader reader = new CsvReader(file,CultureInfo.InvariantCulture))
                 {
                    csv= reader.GetRecords<CSVLINES>().ToList();
                 }
             }
-            using (StreamReader file = new StreamReader(Path.Combine(outputfolder, "HighValue-"+rssfile.Replace(".txt", ".csv"))))
+
+            FileInfo highvalpath = new FileInfo(Path.Combine(outputfolder, "Highval-" + Path.ChangeExtension(rssfile.Name, "csv")));
+
+            using (StreamReader file = new StreamReader(highvalpath.FullName))
             {
                 using(CsvReader reader = new CsvReader(file,CultureInfo.InvariantCulture))
                 {
@@ -211,16 +217,20 @@ namespace RSSSorter
                 SortAlerts(alerts.Result, ref csv, ref csvhighval, ref highval, ref discard);
             }
 
+            FileInfo highvalpath = new FileInfo (Path.Combine( outputfolder, "Highval-"+Path.ChangeExtension(rssfile.Name,"csv"))) ;
+
             //write highval csv
-            using (StreamWriter writer = new StreamWriter(Path.Combine(outputfolder, "HighValue-" + rssfile.Replace(".txt", ".csv")),false))
+            using (StreamWriter writer = new StreamWriter(highvalpath.FullName))
             {
-                using (CsvWriter csvwriter = new CsvWriter(writer,CultureInfo.InvariantCulture))
+                using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
                     csvwriter.WriteRecords(csvhighval.OrderBy(item => item.Age));
                 }
             }
+
+            FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
             //write normal csv
-            using (StreamWriter writer = new StreamWriter(Path.Combine(outputfolder, rssfile.Name.Replace(".txt", ".csv")),false))
+            using (StreamWriter writer = new StreamWriter(normalvalpath.FullName))
             {
                 using (CsvWriter csvwriter = new CsvWriter(writer,CultureInfo.InvariantCulture))
                 {
@@ -297,17 +307,18 @@ namespace RSSSorter
                     rssCsv.Add(new CSVLINES
                     {
                         Title = item.Title.Text,
-                        Url = item.Links.ToString(),                        
+                        Url = String.Join(" | ",item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri)),
                         Source = syndicationFeed.Title.Text,
                         Age = item.LastUpdatedTime.DateTime
-                    });
+                    }) ;
                     if(item.Summary != null)
                     {
-                        rssCsv[-1].Snippet = item.Summary.Text;
+                        rssCsv.Last().Snippet = item.Summary.Text;
                     }
                     else
                     {
-                        rssCsv[-1].Snippet = item.Content.ToString();
+                        TextSyndicationContent content = (TextSyndicationContent)item.Content;
+                        rssCsv.Last().Snippet = content.Text;
                     }
                 }
 
