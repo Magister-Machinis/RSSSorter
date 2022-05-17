@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSSorter", "RSSSorterMain\RSSSorter.csproj", "{AA7DAA87-19FB-462A-A1CF-BC9E4154FE8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RSSSorterTests", "RSSSorterTests\RSSSorterTests.csproj", "{5F362119-460B-4CC5-828A-F719893E7BB4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RSSSorterTests", "RSSSorterTests\RSSSorterTests.csproj", "{5F362119-460B-4CC5-828A-F719893E7BB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

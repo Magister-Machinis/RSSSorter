@@ -44,7 +44,7 @@ namespace RSSSorter
             string outputfolder;
             int agelimit = 30;
             //check for help menu
-            if(args[0] == "-help" || args[0] == "/?" || args[0] == "-h")
+            if(args.Length < 1 || args[0] == "-help" || args[0] == "/?" || args[0] == "-h")
             {
                 Helpmenu();
                 return;
@@ -136,8 +136,8 @@ namespace RSSSorter
         static async Task<bool> UpdateRSSlists(FileInfo rssfile, string highvaluelist, string discardlist,string outputfolder, int agelimit)
         {
             //determine if we are dealing with a new rss feed list or not
-            //try
-            //{
+            try
+            {
                 if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
                 {
                     updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
@@ -147,11 +147,11 @@ namespace RSSSorter
                     Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
                 }
                 return true;
-            //}
-            //catch(Exception e)
-            //{
-            //    Console.WriteLine(e);
-            //}
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+            }
             return false;
         }
 
