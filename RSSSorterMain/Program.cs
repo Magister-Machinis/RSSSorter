@@ -8,6 +8,7 @@ using CsvHelper;
 using System.Xml;
 using System.ServiceModel.Syndication;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 
 namespace RSSSorter
 {
@@ -17,7 +18,8 @@ namespace RSSSorter
         public string Url { get; set; }
         public string Snippet { get; set; }
         public string Source { get; set; }
-        public DateTime Age { get; set; }
+        public DateTime LastUpdate { get; set; }
+        public DateTime FirstPosted { get; set; }
     }
     public class Program
     {
@@ -209,11 +211,10 @@ namespace RSSSorter
 
             csv = AgeTrim(csv, agelimit);
             csvhighval = AgeTrim(csvhighval, agelimit);
-
-            Task.WaitAll(newalerts.ToArray());
-
+            
             foreach(Task<CSVLINES[]> alerts in newalerts)
             {
+                alerts.Wait();
                 SortAlerts(alerts.Result, ref csv, ref csvhighval, ref highval, ref discard);
             }
 
@@ -224,7 +225,7 @@ namespace RSSSorter
             {
                 using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    csvwriter.WriteRecords(csvhighval.OrderBy(item => item.Age));
+                    csvwriter.WriteRecords(csvhighval.OrderBy(item => item.LastUpdate));
                 }
             }
 
@@ -234,7 +235,7 @@ namespace RSSSorter
             {
                 using (CsvWriter csvwriter = new CsvWriter(writer,CultureInfo.InvariantCulture))
                 {
-                    csvwriter.WriteRecords(csv.OrderBy(item => item.Age));
+                    csvwriter.WriteRecords(csv.OrderBy(item => item.LastUpdate));
                 }
             }
         }
@@ -251,13 +252,17 @@ namespace RSSSorter
         {
             foreach(CSVLINES alert in alerts)
             {
+                //if the alert item doesnt fit any matters in the discard list
                 if(discard.All(i => !checkcontent(i, alert)))
                 {
+                    //if alert item matches a line from the high value list
                     if(highval.Any(i => checkcontent(i, alert)))
                     {
+                        //either add new entry, or update last modified date and url
                         if(csvhighval.Any(i => alert.Url == i.Url))
                         {
-                            csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].Age = alert.Age;
+                            csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
+                            csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].Url = alert.Url;
                         }
                         else
                         {
@@ -268,7 +273,7 @@ namespace RSSSorter
                     {
                         if (csv.Any(i => alert.Url == i.Url))
                         {
-                            csv[csv.FindIndex(i => i.Url == alert.Url)].Age = alert.Age;
+                            csv[csv.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
                         }
                         else
                         {
@@ -280,14 +285,15 @@ namespace RSSSorter
         }
 
         /// <summary>
-        /// checks if the noted content is present in the url, description, or title
+        /// checks if the noted regex is present in the url, description, or title
         /// </summary>
         /// <param name="particle">string to look for</param>
         /// <param name="line">csvline line item to check</param>
         /// <returns></returns>
         static bool checkcontent(string particle, CSVLINES line)
         {
-            return (line.Title.Contains(particle) || line.Url.Contains(particle) || line.Snippet.Contains(particle));
+            Regex regex = new Regex(particle, RegexOptions.IgnoreCase);
+            return (regex.IsMatch(line.Title) || regex.IsMatch(line.Url) || regex.IsMatch(line.Snippet));
         }
 
         /// <summary>
@@ -309,7 +315,8 @@ namespace RSSSorter
                         Title = item.Title.Text,
                         Url = String.Join(" | ",item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri)),
                         Source = syndicationFeed.Title.Text,
-                        Age = item.LastUpdatedTime.DateTime
+                        LastUpdate = item.LastUpdatedTime.DateTime,
+                        FirstPosted = item.PublishDate.DateTime
                     }) ;
                     if(item.Summary != null)
                     {
@@ -336,7 +343,7 @@ namespace RSSSorter
         /// <returns></returns>
         static List<CSVLINES> AgeTrim(List<CSVLINES> csv, int agelimit)
         {
-            return csv.Where(i => i.Age < DateTime.Now.AddDays(agelimit*-1)).ToList();
+            return csv.Where(i => i.LastUpdate < DateTime.Now.AddDays(agelimit*-1)).ToList();
         }
     }
 }
