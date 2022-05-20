@@ -20,6 +20,16 @@ namespace RSSSorter
         public string Source { get; set; }
         public DateTime LastUpdate { get; set; }
         public DateTime FirstPosted { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return ((CSVLINES)obj).Title == Title;
+        }
+
+        public override int GetHashCode()
+        {
+            return Title.GetHashCode();
+        }
     }
     public class Program
     {
@@ -225,7 +235,7 @@ namespace RSSSorter
             {
                 using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                 {
-                    csvwriter.WriteRecords(csvhighval.OrderBy(item => item.LastUpdate));
+                    csvwriter.WriteRecords(csvhighval.Distinct().OrderBy(item => item.LastUpdate).Reverse());
                 }
             }
 
@@ -235,7 +245,7 @@ namespace RSSSorter
             {
                 using (CsvWriter csvwriter = new CsvWriter(writer,CultureInfo.InvariantCulture))
                 {
-                    csvwriter.WriteRecords(csv.OrderBy(item => item.LastUpdate));
+                    csvwriter.WriteRecords(csv.Distinct().OrderBy(item => item.LastUpdate).Reverse());
                 }
             }
         }
