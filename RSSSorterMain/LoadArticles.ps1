@@ -17,9 +17,7 @@ if($FileBrowser.FileNames.Length -ne 0)
     $age = $age*-1
 
     $csv = Import-Csv -Path $FileBrowser.FileName 
-
-    $chromekey = 'HKLM:\SOFTWARE\Classes\ChromeHTML\shell\open\command'
-    $chromepath = (Get-Item -Path $chromekey).GetValue("") -replace " *--.*", ""
+    
     foreach ($item in $csv)
     {
         if (([datetime]::Parse($item.LastUpdate)).date -gt [datetime]::Now.AddDays($age))
@@ -27,7 +25,7 @@ if($FileBrowser.FileNames.Length -ne 0)
             Write-Output "opening article:"
             Write-Output $item.Title
             Write-Output $item.Url
-            Start-Process -FilePath $chromepath -ArgumentList $item.Url
+            Start-Process $item.Url
         }
     }
 }

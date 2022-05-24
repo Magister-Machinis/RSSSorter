@@ -342,7 +342,7 @@ namespace RSSSorter
                     //small check to account for feeds that only populate the last updated field with a placeholder
                     if(rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
                     {
-                        rssCsv.Last().LastUpdate = DateTime.Now;
+                        rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
                     }
                 }
 
