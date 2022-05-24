@@ -23,12 +23,12 @@ namespace RSSSorter
 
         public override bool Equals(object obj)
         {
-            return ((CSVLINES)obj).Title == Title;
+            return ((CSVLINES)obj).Title == Title || ((CSVLINES)obj).Url == Url || ((CSVLINES)obj).Snippet == Snippet;
         }
 
         public override int GetHashCode()
         {
-            return Title.GetHashCode();
+            return Url.GetHashCode();
         }
     }
     public class Program
@@ -40,7 +40,7 @@ namespace RSSSorter
             Console.WriteLine("path to high value sources list. This is a line delimited txt file with the domains to be placed in the high value list rather than the normal list");
             Console.WriteLine("path to ignored sources list. This is a line delimited txt file with the domains to be excluded");
             Console.WriteLine("path to folder to store output");
-            Console.WriteLine("number of days to keep entry on list, optional parameter, defaults to 30 days");
+            Console.WriteLine("number of days to keep entry on list");
             Console.WriteLine("-h, -help, or /? will display this message");
         }
 
@@ -111,14 +111,13 @@ namespace RSSSorter
             //check for and validate agelimit
             if (args.Length==4)
             {
-                if(int.TryParse(args[4], out agelimit))
-                {}
-                else
+                if(!int.TryParse(args[4], out agelimit))
                 {
                     Console.WriteLine("agelimit value not valid integer");
                     Helpmenu();
                     return;
                 }
+                
             }
 
             Task<bool>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(async rssfile => await UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist,outputfolder, agelimit)).ToArray();
@@ -269,10 +268,9 @@ namespace RSSSorter
                     if(highval.Any(i => checkcontent(i, alert)))
                     {
                         //either add new entry, or update last modified date and url
-                        if(csvhighval.Any(i => alert.Url == i.Url))
+                        if(csvhighval.Any(i => alert.Title == i.Title))
                         {
-                            csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
-                            csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].Url = alert.Url;
+                            csvhighval[csvhighval.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
                         }
                         else
                         {
@@ -281,9 +279,10 @@ namespace RSSSorter
                     }
                     else
                     {
-                        if (csv.Any(i => alert.Url == i.Url))
+                        //dedup efforts SHOULD mean there's only one of each item present in a news list
+                        if (csv.Any(i => alert.Title == i.Title))
                         {
-                            csv[csv.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
+                            csv[csv.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
                         }
                         else
                         {
@@ -328,6 +327,8 @@ namespace RSSSorter
                         LastUpdate = item.LastUpdatedTime.DateTime,
                         FirstPosted = item.PublishDate.DateTime
                     }) ;
+
+                    //handling for difference in format between rss and atom
                     if(item.Summary != null)
                     {
                         rssCsv.Last().Snippet = item.Summary.Text;
@@ -336,6 +337,12 @@ namespace RSSSorter
                     {
                         TextSyndicationContent content = (TextSyndicationContent)item.Content;
                         rssCsv.Last().Snippet = content.Text;
+                    }
+
+                    //small check to account for feeds that only populate the last updated field with a placeholder
+                    if(rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
+                    {
+                        rssCsv.Last().LastUpdate = DateTime.Now;
                     }
                 }
 
