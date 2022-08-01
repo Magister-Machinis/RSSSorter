@@ -23,12 +23,12 @@ namespace RSSSorter
 
         public override bool Equals(object obj)
         {
-            return ((CSVLINES)obj).Title == Title || ((CSVLINES)obj).Url == Url || ((CSVLINES)obj).Snippet == Snippet;
+            return ((CSVLINES)obj).Url == Url;
         }
 
         public override int GetHashCode()
         {
-            return Url.GetHashCode();
+            return this.Url.GetHashCode();
         }
     }
     public class Program
@@ -261,36 +261,61 @@ namespace RSSSorter
         {
             foreach(CSVLINES alert in alerts)
             {
-                //if the alert item doesnt fit any matters in the discard list
-                if(discard.All(i => !checkcontent(i, alert)))
+                if (NotanImage(alert.Url))
                 {
-                    //if alert item matches a line from the high value list
-                    if(highval.Any(i => checkcontent(i, alert)))
+                    //if the alert item doesnt fit any matters in the discard list
+                    if (discard.All(i => !checkcontent(i, alert)))
                     {
-                        //either add new entry, or update last modified date and url
-                        if(csvhighval.Any(i => alert.Title == i.Title))
+                        //if alert item matches a line from the high value list
+                        if (highval.Any(i => checkcontent(i, alert)))
                         {
-                            csvhighval[csvhighval.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
+                            //either add new entry, or update last modified date and url
+                            if (csvhighval.Any(i => alert.Title == i.Title))
+                            {
+                                csvhighval[csvhighval.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
+                            }
+                            else
+                            {
+                                csvhighval.Add(alert);
+                            }
                         }
                         else
                         {
-                            csvhighval.Add(alert);
-                        }
-                    }
-                    else
-                    {
-                        //dedup efforts SHOULD mean there's only one of each item present in a news list
-                        if (csv.Any(i => alert.Title == i.Title))
-                        {
-                            csv[csv.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
-                        }
-                        else
-                        {
-                            csv.Add(alert);
+                            //dedup efforts SHOULD mean there's only one of each item present in a news list
+                            if (csv.Any(i => alert.Title == i.Title))
+                            {
+                                csv[csv.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
+                            }
+                            else
+                            {
+                                csv.Add(alert);
+                            }
                         }
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// small logic check to filter out images from rss results, there seem to be alot of headshots of authors included
+        /// </summary>
+        /// <param name="url"> url sequence</param>
+        /// <returns></returns>
+        private static bool NotanImage(string urls)
+        {
+            string[] imageextensions = {"jpg","jpeg","png","gif","img","tif","tiff","bmp","eps","raw"};
+            foreach (string url in urls.Split(" | "))
+            {
+                string extension = Path.GetExtension(url);
+                foreach (string item in imageextensions)
+                {
+                    if (item == extension)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         /// <summary>
