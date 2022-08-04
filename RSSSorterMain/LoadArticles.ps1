@@ -8,6 +8,7 @@ Write-Output "Select Files to process for report."
 
 $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
 InitialDirectory = $PSScriptRoot
+MultiSelect= $true
 }
 
 $null = $FileBrowser.ShowDialog()
@@ -16,16 +17,22 @@ if($FileBrowser.FileNames.Length -ne 0)
     [int]$age = Read-Host "How many days back to be displayed?"
     $age = $age*-1
 
-    $csv = Import-Csv -Path $FileBrowser.FileName 
-    
-    foreach ($item in $csv)
+    foreach($filename in $FileBrowser.FileNames)
     {
-        if (([datetime]::Parse($item.LastUpdate)).date -gt [datetime]::Now.AddDays($age))
+        $csv = Import-Csv -Path $filename
+    
+        foreach ($item in $csv)
         {
-            Write-Output "opening article:"
-            Write-Output $item.Title
-            Write-Output $item.Url
-            Start-Process $item.Url
+            if (([datetime]::Parse($item.LastUpdate)).date -gt [datetime]::Now.AddDays($age))
+            {
+                Write-Output "opening article:"
+                Write-Output $item.Title
+                Write-Output $item.Url
+                foreach($url in $item.Url -split " | ")
+                {
+                    Start-Process $item.Url
+                }
+            }
         }
     }
 }

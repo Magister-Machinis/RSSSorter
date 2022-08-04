@@ -244,8 +244,6 @@ namespace RSSSorter
         {
             foreach (CSVLINES alert in alerts)
             {
-                if (NotanImage(alert.Url))
-                {
                     //if the alert item doesnt fit any matters in the discard list
                     if (discard.All(i => !checkcontent(i, alert)))
                     {
@@ -276,7 +274,7 @@ namespace RSSSorter
                         }
                     }
                 }
-            }
+            
         }
 
         /// <summary>
@@ -284,20 +282,19 @@ namespace RSSSorter
         /// </summary>
         /// <param name="url"> url sequence</param>
         /// <returns></returns>
-        private static bool NotanImage(string urls)
+        private static bool NotanImage(string url)
         {
-            string[] imageextensions = { "jpg", "jpeg", "png", "gif", "img", "tif", "tiff", "bmp", "eps", "raw" };
-            foreach (string url in urls.Split(" | "))
+            string[] imageextensions = { ".jpg", ".jpeg", ".png", ".gif", ".img", ".tif", ".tiff", ".bmp", ".eps", ".raw" };
+            
+            string extension = Path.GetExtension(url);
+            foreach (string item in imageextensions)
             {
-                string extension = Path.GetExtension(url);
-                foreach (string item in imageextensions)
+                if (item == extension)
                 {
-                    if (item == extension)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
+            
             return true;
         }
 
@@ -330,7 +327,7 @@ namespace RSSSorter
                     rssCsv.Add(new CSVLINES
                     {
                         Title = item.Title.Text,
-                        Url = string.Join(" | ", item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri)),
+                        Url = string.Join(" | ", item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x))),
                         Source = syndicationFeed.Title.Text,
                         LastUpdate = item.LastUpdatedTime.DateTime,
                         FirstPosted = item.PublishDate.DateTime
