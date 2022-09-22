@@ -10,7 +10,7 @@ using System.ServiceModel.Syndication;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using DataFormats;
-
+using System.Web;
 
 namespace RSSSorter
 {
@@ -323,16 +323,21 @@ namespace RSSSorter
                 SyndicationFeed syndicationFeed = SyndicationFeed.Load(xmlReader);
 
                 foreach (SyndicationItem item in syndicationFeed.Items)
-                {
+                {                    
                     rssCsv.Add(new CSVLINES
                     {
                         Title = item.Title.Text,
-                        Url = string.Join(" | ", item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x))),
+                        Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
                         Source = syndicationFeed.Title.Text,
                         LastUpdate = item.LastUpdatedTime.DateTime,
                         FirstPosted = item.PublishDate.DateTime
                     });
 
+                    //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
+                    if(rssCsv.Last().Source.Contains("Google Alert"))
+                    {
+                        rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
+                    }
                     //handling for difference in format between rss and atom
                     if (item.Summary != null)
                     {
