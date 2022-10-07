@@ -103,17 +103,24 @@ namespace RSSSorter
 
             }
 
-            Task<bool>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(async rssfile => await UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
+            Task<ResultStatus>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(async rssfile => await UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
 
             Task.WaitAll(tasks);
 
-            if (tasks.All(i => i.Result == true))
+            if (tasks.All(i => i.Result.IsSuccess == true))
             {
                 Console.WriteLine("Processing completed successfully");
             }
             else
             {
                 Console.WriteLine("Processing of one or more feed collections has failed.");
+                foreach(Task<ResultStatus> item in tasks)
+                {
+                    if(item.Result.IsSuccess == false)
+                    {
+                        Console.WriteLine(item.Result.message);
+                    }
+                }
             }
 
         }
@@ -127,26 +134,26 @@ namespace RSSSorter
         /// <param name="outputfolder"></param>
         /// <param name="agelimit"></param>
         /// <returns></returns>
-        static async Task<bool> UpdateRSSlists(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
+        static async Task<ResultStatus> UpdateRSSlists(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
         {
             //determine if we are dealing with a new rss feed list or not
             try
             {
                 if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
                 {
-                    updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
+                    return updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
                 }
                 else
                 {
-                    Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
+                    return Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
                 }
-                return true;
+                
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                return new ResultStatus { IsSuccess=false, message=e.Message };
             }
-            return false;
+            
         }
 
         /// <summary>
@@ -157,31 +164,38 @@ namespace RSSSorter
         /// <param name="discardlist"></param>
         /// <param name="outputfolder"></param>
         /// <param name="agelimit"></param>
-        static void Oldlist(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
+        static ResultStatus Oldlist(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
         {
-            List<CSVLINES> csv;
-            List<CSVLINES> csvhighval;
-
-            FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
-
-            using (StreamReader file = new StreamReader(normalvalpath.FullName))
+            try
             {
-                using (CsvReader reader = new CsvReader(file, CultureInfo.InvariantCulture))
+                List<CSVLINES> csv;
+                List<CSVLINES> csvhighval;
+
+                FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
+
+                using (StreamReader file = new StreamReader(normalvalpath.FullName))
                 {
-                    csv = reader.GetRecords<CSVLINES>().ToList();
+                    using (CsvReader reader = new CsvReader(file, CultureInfo.InvariantCulture))
+                    {
+                        csv = reader.GetRecords<CSVLINES>().ToList();
+                    }
                 }
+
+                FileInfo highvalpath = new FileInfo(Path.Combine(outputfolder, "Highval-" + Path.ChangeExtension(rssfile.Name, "csv")));
+
+                using (StreamReader file = new StreamReader(highvalpath.FullName))
+                {
+                    using (CsvReader reader = new CsvReader(file, CultureInfo.InvariantCulture))
+                    {
+                        csvhighval = reader.GetRecords<CSVLINES>().ToList();
+                    }
+                }
+                return updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, csv, csvhighval);
             }
-
-            FileInfo highvalpath = new FileInfo(Path.Combine(outputfolder, "Highval-" + Path.ChangeExtension(rssfile.Name, "csv")));
-
-            using (StreamReader file = new StreamReader(highvalpath.FullName))
+            catch(Exception e)
             {
-                using (CsvReader reader = new CsvReader(file, CultureInfo.InvariantCulture))
-                {
-                    csvhighval = reader.GetRecords<CSVLINES>().ToList();
-                }
+                return new ResultStatus { IsSuccess = false, message = e.Message };
             }
-            updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, csv, csvhighval);
         }
 
         /// <summary>
@@ -194,41 +208,60 @@ namespace RSSSorter
         /// <param name="agelimit"></param>
         /// <param name="csv"></param>
         /// <param name="csvhighval"></param>
-        static void updatelist(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit, List<CSVLINES> csv, List<CSVLINES> csvhighval)
+        static ResultStatus updatelist(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit, List<CSVLINES> csv, List<CSVLINES> csvhighval)
         {
-            List<Task<CSVLINES[]>> newalerts = File.ReadAllLines(rssfile.FullName).Select(async rssurl => await GetRssUpdate(rssurl)).ToList();
-
-            string[] highval = File.ReadAllLines(highvaluelist);
-            string[] discard = File.ReadAllLines(discardlist);
-
-            csv = AgeTrim(csv, agelimit);
-            csvhighval = AgeTrim(csvhighval, agelimit);
-
-            foreach (Task<CSVLINES[]> alerts in newalerts)
+            try
             {
-                alerts.Wait();
-                SortAlerts(alerts.Result, ref csv, ref csvhighval, ref highval, ref discard);
-            }
+                List<Task<CSVLINES[]>> newalerts = File.ReadAllLines(rssfile.FullName).Select(async rssurl => await GetRssUpdate(rssurl)).ToList();
+                List<CSVLINES> erroralerts = new List<CSVLINES>();
+                string[] highval = File.ReadAllLines(highvaluelist);
+                string[] discard = File.ReadAllLines(discardlist);
 
-            FileInfo highvalpath = new FileInfo(Path.Combine(outputfolder, "Highval-" + Path.ChangeExtension(rssfile.Name, "csv")));
+                csv = AgeTrim(csv, agelimit);
+                csvhighval = AgeTrim(csvhighval, agelimit);
 
-            //write highval csv
-            using (StreamWriter writer = new StreamWriter(highvalpath.FullName))
-            {
-                using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                foreach (Task<CSVLINES[]> alerts in newalerts)
                 {
-                    csvwriter.WriteRecords(csvhighval.Distinct().OrderBy(item => item.LastUpdate).Reverse());
+                    alerts.Wait();
+                    foreach(CSVLINES alert in alerts.Result)
+                    {
+                        if(alert.Title == "ERROR")
+                        {
+                            erroralerts.Add(alert);
+                        }
+                    }
+                    SortAlerts(alerts.Result, ref csv, ref csvhighval, ref highval, ref discard);
                 }
-            }
 
-            FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
-            //write normal csv
-            using (StreamWriter writer = new StreamWriter(normalvalpath.FullName))
-            {
-                using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                FileInfo highvalpath = new FileInfo(Path.Combine(outputfolder, "Highval-" + Path.ChangeExtension(rssfile.Name, "csv")));
+
+                //write highval csv
+                using (StreamWriter writer = new StreamWriter(highvalpath.FullName))
                 {
-                    csvwriter.WriteRecords(csv.Distinct().OrderBy(item => item.LastUpdate).Reverse());
+                    using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csvwriter.WriteRecords(csvhighval.Distinct().OrderBy(item => item.LastUpdate).Reverse());
+                    }
                 }
+
+                FileInfo normalvalpath = new FileInfo(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv")));
+                //write normal csv
+                using (StreamWriter writer = new StreamWriter(normalvalpath.FullName))
+                {
+                    using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csvwriter.WriteRecords(csv.Distinct().OrderBy(item => item.LastUpdate).Reverse());
+                    }
+                }
+                if(erroralerts.Count > 0)
+                {
+                    return new ResultStatus { IsSuccess = false, message = String.Join(" | ", erroralerts.Select(x => x.Url) )};
+                }
+                return new ResultStatus { IsSuccess = true};
+            }
+            catch(Exception e)
+            {
+                return new ResultStatus { IsSuccess = false, message = e.Message };
             }
         }
 
@@ -244,8 +277,8 @@ namespace RSSSorter
         {
             foreach (CSVLINES alert in alerts)
             {
-                    //if the alert item doesnt fit any matters in the discard list
-                    if (discard.All(i => !checkcontent(i, alert)))
+                    //if the alert item doesnt fit any matters in the discard list or errored during processing
+                    if (discard.All(i => !checkcontent(i, alert)) || alert.Title != "ERROR")
                     {
                         //if alert item matches a line from the high value list
                         if (highval.Any(i => checkcontent(i, alert)))
@@ -307,7 +340,7 @@ namespace RSSSorter
         static bool checkcontent(string particle, CSVLINES line)
         {
             Regex regex = new Regex(particle, RegexOptions.IgnoreCase);
-            return regex.IsMatch(line.Title) || regex.IsMatch(line.Url) || regex.IsMatch(line.Snippet);
+            return regex.IsMatch(line.Title) || regex.IsMatch(line.Url);
         }
 
         /// <summary>
@@ -318,44 +351,47 @@ namespace RSSSorter
         static async Task<CSVLINES[]> GetRssUpdate(string rssurl)
         {
             List<CSVLINES> rssCsv = new List<CSVLINES>();
-            using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(rssurl).Result))
+            try
             {
-                SyndicationFeed syndicationFeed = SyndicationFeed.Load(xmlReader);
+                using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(rssurl).Result))
+                {
+                    SyndicationFeed syndicationFeed = SyndicationFeed.Load(xmlReader);
 
-                foreach (SyndicationItem item in syndicationFeed.Items)
-                {                    
-                    rssCsv.Add(new CSVLINES
+                    foreach (SyndicationItem item in syndicationFeed.Items)
                     {
-                        Title = item.Title.Text,
-                        Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
-                        Source = syndicationFeed.Title.Text,
-                        LastUpdate = item.LastUpdatedTime.DateTime,
-                        FirstPosted = item.PublishDate.DateTime
-                    });
+                        rssCsv.Add(new CSVLINES
+                        {
+                            Title = item.Title.Text,
+                            Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
+                            Source = syndicationFeed.Title.Text,
+                            LastUpdate = item.LastUpdatedTime.DateTime,
+                            FirstPosted = item.PublishDate.DateTime
+                        });
 
-                    //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
-                    if(rssCsv.Last().Source.Contains("Google Alert"))
-                    {
-                        rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
-                    }
-                    //handling for difference in format between rss and atom
-                    if (item.Summary != null)
-                    {
-                        rssCsv.Last().Snippet = item.Summary.Text;
-                    }
-                    else
-                    {
-                        TextSyndicationContent content = (TextSyndicationContent)item.Content;
-                        rssCsv.Last().Snippet = content.Text;
+                        //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
+                        if (rssCsv.Last().Source.Contains("Google Alert"))
+                        {
+                            rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
+                        }
+
+
+                        //small check to account for feeds that only populate the last updated field with a placeholder
+                        if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
+                        {
+                            rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
+                        }
                     }
 
-                    //small check to account for feeds that only populate the last updated field with a placeholder
-                    if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
-                    {
-                        rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
-                    }
                 }
-
+                
+            }
+            catch(Exception e)
+            {
+                rssCsv.Add(new CSVLINES
+                {
+                    Title = "ERROR",
+                    Url = e.Message
+                });
             }
             return rssCsv.ToArray();
         }
