@@ -277,16 +277,16 @@ namespace RSSSorter
         {
             foreach (CSVLINES alert in alerts)
             {
-                    //if the alert item doesnt fit any matters in the discard list or errored during processing
-                    if (discard.All(i => !checkcontent(i, alert)) || alert.Title != "ERROR")
+                    //if the alert item doesnt fit any matters in the discard list and did not error during processing
+                    if (discard.All(i => !checkcontent(i, alert)) && alert.Title != "ERROR")
                     {
                         //if alert item matches a line from the high value list
                         if (highval.Any(i => checkcontent(i, alert)))
                         {
                             //either add new entry, or update last modified date and url
-                            if (csvhighval.Any(i => alert.Title == i.Title))
+                            if (csvhighval.Any(i => alert.Url == i.Url))
                             {
-                                csvhighval[csvhighval.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
+                                csvhighval[csvhighval.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
                             }
                             else
                             {
@@ -296,9 +296,9 @@ namespace RSSSorter
                         else
                         {
                             //dedup efforts SHOULD mean there's only one of each item present in a news list
-                            if (csv.Any(i => alert.Title == i.Title))
+                            if (csv.Any(i => alert.Url == i.Url))
                             {
-                                csv[csv.FindIndex(i => i.Title == alert.Title)].LastUpdate = alert.LastUpdate;
+                                csv[csv.FindIndex(i => i.Url == alert.Url)].LastUpdate = alert.LastUpdate;
                             }
                             else
                             {
@@ -316,11 +316,9 @@ namespace RSSSorter
         /// <param name="url"> url sequence</param>
         /// <returns></returns>
         private static bool NotanImage(string url)
-        {
-            string[] imageextensions = { ".jpg", ".jpeg", ".png", ".gif", ".img", ".tif", ".tiff", ".bmp", ".eps", ".raw" };
-            
+        {                        
             string extension = Path.GetExtension(url);
-            foreach (string item in imageextensions)
+            foreach (string item in new string[] { ".jpg", ".jpeg", ".png", ".gif", ".img", ".tif", ".tiff", ".bmp", ".eps", ".raw" })
             {
                 if (item == extension)
                 {
