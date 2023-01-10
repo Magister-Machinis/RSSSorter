@@ -7,6 +7,28 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <TabControl>
+            <TabItem Header="Settings">
+                <Grid Background="#FFE5E5E5">
+                    <Button Content="Set Scheduled Task" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Button Content="Remove Scheduled Task" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
+                    <ComboBox HorizontalAlignment="Left" Margin="167,35,0,0" VerticalAlignment="Top" Width="120" Name="ScheduleTiming">
+                        <ComboBoxItem Content="Daily" />
+                        <ComboBoxItem Content="Weekly" />
+                        <ComboBoxItem Content="Monthly" />
+                    </ComboBox>
+                    <TextBlock HorizontalAlignment="Left" Margin="167,14,0,0" TextWrapping="Wrap" Text="Scheduling Settings" VerticalAlignment="Top"/>
+                    <TextBox HorizontalAlignment="Left" Margin="167,62,0,0" TextWrapping="Wrap" Text="Hour" VerticalAlignment="Top" Width="41" Height="22" PreviewTextInput="RestricttoNumbers"/>
+                    <TextBox HorizontalAlignment="Left" Margin="229,64,0,0" TextWrapping="Wrap" Text="Minute" VerticalAlignment="Top" Width="58" Height="20" PreviewTextInput="RestricttoNumbers"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Discard / HighVal lists">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+            <TabItem Header="Feed Lists">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
+        </TabControl>
 
     </Grid>
 </Window>
