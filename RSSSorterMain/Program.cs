@@ -122,38 +122,7 @@ namespace RSSSorter
                     }
                 }
             }
-            //generate main list
-            MainListGen(args[3]);
 
-        }
-
-        /// <summary>
-        /// accepts target folder for outputs and makes a master list of all specific lists (dedupped by url)
-        /// </summary>
-        /// <param name="destfolder"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private static void MainListGen(string destfolder)
-        {
-            List<CSVLINES> mainlist = new List<CSVLINES>();
-            foreach(string filepath in Directory.GetFiles(destfolder,"*.csv"))
-            {
-                using(StreamReader file = new StreamReader(filepath))
-                {
-                    using (CsvReader reader = new CsvReader(file, CultureInfo.InvariantCulture))
-                    {
-                        mainlist.AddRange(reader.GetRecords<CSVLINES>().ToList());
-                    }
-                }
-            }
-            FileInfo DestFile = new FileInfo(Path.Combine(destfolder, "MainList.csv"));
-
-            using(StreamWriter file = new StreamWriter(DestFile.FullName, false))
-            {
-                using (CsvWriter writer = new CsvWriter(file,CultureInfo.InvariantCulture))
-                {
-                    writer.WriteRecords<CSVLINES>(mainlist.GroupBy(i => i.Url).Select(x => x.First()).ToList());
-                }
-            }
         }
 
         /// <summary>
@@ -271,7 +240,7 @@ namespace RSSSorter
                 {
                     using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        csvwriter.WriteRecords(csvhighval.GroupBy(i => i.Url).Select(i => i.First()).OrderBy(item => item.LastUpdate).Reverse());
+                        csvwriter.WriteRecords(csvhighval.Distinct().OrderBy(item => item.LastUpdate).Reverse());
                     }
                 }
 
@@ -281,7 +250,7 @@ namespace RSSSorter
                 {
                     using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        csvwriter.WriteRecords(csv.GroupBy(i => i.Url).Select(i => i.First()).OrderBy(item => item.LastUpdate).Reverse());
+                        csvwriter.WriteRecords(csv.Distinct().OrderBy(item => item.LastUpdate).Reverse());
                     }
                 }
                 if(erroralerts.Count > 0)
