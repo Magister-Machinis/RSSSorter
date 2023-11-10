@@ -134,6 +134,11 @@ namespace RSSSorter
         /// <exception cref="NotImplementedException"></exception>
         private static void MainListGen(string destfolder)
         {
+            string MainlistPath = Path.Combine(destfolder, "MainList.csv");
+            if (File.Exists(MainlistPath))
+            {
+                  File.Delete(MainlistPath);
+            }
             List<CSVLINES> mainlist = new List<CSVLINES>();
             foreach(string filepath in Directory.GetFiles(destfolder,"*.csv"))
             {
@@ -145,7 +150,7 @@ namespace RSSSorter
                     }
                 }
             }
-            FileInfo DestFile = new FileInfo(Path.Combine(destfolder, "MainList.csv"));
+            FileInfo DestFile = new FileInfo(MainlistPath);
 
             using(StreamWriter file = new StreamWriter(DestFile.FullName, false))
             {
