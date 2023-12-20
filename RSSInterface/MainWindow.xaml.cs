@@ -23,14 +23,14 @@ namespace RSSInterface
     /// </summary>
     public partial class MainWindow : Window
     {
-        public ObservableCollection<RssData> RssEntries { get; init; }
-        public ObservableCollection<FilterItem> HighvalFilters { get; init; }
-        public ObservableCollection<FilterItem> DiscardFilters { get; init; }
+        public List<RssData> RssEntries { get; init; }
+        public List<FilterItem> HighvalFilters { get; init; }
+        public List<FilterItem> DiscardFilters { get; init; }
         public MainWindow()
         {
             InitializeComponent();
 
-            RssEntries= new ObservableCollection<RssData>()
+            RssEntries= new List<RssData>()
             { new RssData() {
             URL = "example.com/rss",
             Title  = "Create or load rss list to populate this table.",
@@ -47,7 +47,7 @@ namespace RSSInterface
             if (File.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt")))
             {
                 string[] highvalitems = File.ReadAllLines(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt"));
-                HighvalFilters= new ObservableCollection<FilterItem>();
+                HighvalFilters= new List<FilterItem>();
                 foreach(string item in highvalitems)
                 {
                     HighvalFilters.Add(new FilterItem()
@@ -59,7 +59,7 @@ namespace RSSInterface
             }
             else
             {
-                File.Create(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt"));
+                File.Create(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt"));
             }
             Highvalpath.Text = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt");
 
@@ -67,7 +67,7 @@ namespace RSSInterface
             if (File.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt")))
             {
                 string[] Discarditems = File.ReadAllLines(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt"));
-                DiscardFilters = new ObservableCollection<FilterItem>();
+                DiscardFilters = new List<FilterItem>();
                 foreach (string item in Discarditems)
                 {
                     DiscardFilters.Add(new FilterItem()
@@ -91,6 +91,7 @@ namespace RSSInterface
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
+
         
     }
 

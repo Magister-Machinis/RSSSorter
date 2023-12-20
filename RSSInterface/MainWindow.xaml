@@ -10,10 +10,10 @@
         <TabControl>
             <TabItem Header="Settings">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Set Scheduled Task" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Button Content="Set Scheduled Task" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Set_Scheduled_Task_Click"/>
                     <Button Content="Remove Scheduled Task" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="167,35,0,0" VerticalAlignment="Top" Width="120" Name="ScheduleTiming">
-                        <ComboBoxItem Content="Daily" />
+                    <ComboBox HorizontalAlignment="Left" Margin="167,35,0,0" VerticalAlignment="Top" Width="120" Name="ScheduleTiming" >
+                        <ComboBoxItem IsSelected="True" Content="Daily" />
                         <ComboBoxItem Content="Weekly" />
                         <ComboBoxItem Content="Monthly" />
                     </ComboBox>
@@ -32,21 +32,21 @@
                     <TextBox HorizontalAlignment="Left" Margin="387,8,0,0" TextWrapping="Wrap" Text="Highval Filter here" VerticalAlignment="Top" Width="120" Name="newHighval"/>
                     <TextBox HorizontalAlignment="Left" Margin="387,34,0,0" TextWrapping="Wrap" Text="Discard Filter here" VerticalAlignment="Top" Width="120" Name="newDiscardval"/>
                     <Button Content="Delete Selected Filters" HorizontalAlignment="Left" Margin="512,7,0,0" VerticalAlignment="Top"/>
-                    <DataGrid Name="HighValFilterDisplay" d:ItemsSource="{Binding HighvalFilters}" Margin="0,81,397,0"/>
+                    <DataGrid Name="HighValFilterDisplay" Margin="0,81,397,0"/>
                     <TextBlock HorizontalAlignment="Left" Margin="153,60,0,0" TextWrapping="Wrap" Text="High Value Filters" VerticalAlignment="Top"/>
-                    <DataGrid Name="DiscardFiltersDisplay" d:ItemsSource="{Binding DiscardFilters}" Margin="397,81,0,0"/>
+                    <DataGrid Name="DiscardFiltersDisplay" Margin="397,81,0,0"/>
                     <TextBlock HorizontalAlignment="Left" Margin="559,60,0,0" TextWrapping="Wrap" Text="Discard Filters" VerticalAlignment="Top"/>
                     <Button Content="Save Lists" HorizontalAlignment="Left" Margin="512,33,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Feed Lists">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Load List" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Button Content="Load List" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" />
                     <Button Content="Save List" HorizontalAlignment="Left" Margin="66,10,0,0" VerticalAlignment="Top"/>
                     <Button Content="Add Item" HorizontalAlignment="Left" Margin="121,10,0,0" VerticalAlignment="Top"/>
                     <TextBox HorizontalAlignment="Left" Margin="179,12,0,0" TextWrapping="Wrap" Text="Add rss url here" VerticalAlignment="Top" Width="120"/>
                     <Button Content="Remove Checked entries" HorizontalAlignment="Left" Margin="304,11,0,0" VerticalAlignment="Top"/>
-                    <DataGrid d:ItemsSource="{Binding RSSEntries}" Margin="0,36,0,0"/>
+                    <DataGrid Name="RSSEntriesDisplay" Margin="0,36,0,0"/>
                 </Grid>
             </TabItem>
         </TabControl>
