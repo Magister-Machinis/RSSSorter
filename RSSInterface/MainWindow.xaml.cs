@@ -24,8 +24,7 @@ namespace RSSInterface
     public partial class MainWindow : Window
     {
         public List<RssData> RssEntries { get; init; }
-        public List<FilterItem> HighvalFilters { get; init; }
-        public List<FilterItem> DiscardFilters { get; init; }
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -43,48 +42,14 @@ namespace RSSInterface
                 Directory.CreateDirectory(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists"));
             }
 
-            //confirm or initiatilize high value filters
-            if (File.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt")))
-            {
-                string[] highvalitems = File.ReadAllLines(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt"));
-                HighvalFilters= new List<FilterItem>();
-                foreach(string item in highvalitems)
-                {
-                    HighvalFilters.Add(new FilterItem()
-                    {
-                        Item = item,
-                        Selected = false
-                    });
-                }
-            }
-            else
-            {
-                File.Create(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt"));
-            }
-            Highvalpath.Text = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt");
-
-            //confirm or initiatilize discard value filters
-            if (File.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt")))
-            {
-                string[] Discarditems = File.ReadAllLines(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt"));
-                DiscardFilters = new List<FilterItem>();
-                foreach (string item in Discarditems)
-                {
-                    DiscardFilters.Add(new FilterItem()
-                    {
-                        Item = item,
-                        Selected = false
-                    });
-                }
-            }
-            else
-            {
-                File.Create(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt"));
-            }
-            Discardpath.Text = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Discard.txt");
+            //initialize filter lists
+            HighvalFilters = new List<FilterItem>();
+            DiscardFilters = new List<FilterItem>();
+            InitializeFilterLists();
+            
         }
 
-       
+        
 
         private void RestricttoNumbers(object sender, TextCompositionEventArgs e)
         {
@@ -92,7 +57,7 @@ namespace RSSInterface
             e.Handled = regex.IsMatch(e.Text);
         }
 
-       
+        
     }
 
     public class RssData
