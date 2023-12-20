@@ -92,7 +92,7 @@ namespace RSSInterface
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        
+       
     }
 
     public class RssData

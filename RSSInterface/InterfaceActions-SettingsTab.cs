@@ -15,7 +15,9 @@ namespace RSSInterface
         const string taskname = "RSStask";
         private void Set_Scheduled_Task_Click(object sender, RoutedEventArgs e)
         {
-            int hour = RuntimeHours.Text != "Hour(24h)" ? int.Parse(RuntimeHours.Text,) : 1,
+            Remove_Scheduled_Task_Click(sender, e);
+
+            int hour = RuntimeHours.Text != "Hour(24h)" ? int.Parse(RuntimeHours.Text) : 1,
                 minute = RunTimeMinutes.Text != "Minute" ? int.Parse(RunTimeMinutes.Text) : 0; 
             string days = Retentiontime.Text != "Days to retain entries" ? Retentiontime.Text: "30";
             
@@ -42,7 +44,26 @@ namespace RSSInterface
             }
 
             scheduledtask.RegisterChanges();
-             
+            scheduledtask.Dispose();
+        }
+        private bool Check_if_Task_exists()
+        {
+            using (Microsoft.Win32.TaskScheduler.Task task = new TaskService().GetTask(taskname))
+            {
+                return task != null;
+            }
+            
+        }
+        private void Remove_Scheduled_Task_Click(object sender, RoutedEventArgs e)
+        {
+            if (Check_if_Task_exists())
+            {
+                using(TaskService ts = new TaskService())
+                {
+                    ts.RootFolder.DeleteTask(taskname);
+                }
+                
+            }
         }
     }
 }
