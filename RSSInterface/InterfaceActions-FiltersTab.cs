@@ -11,6 +11,12 @@ namespace RSSInterface
 {
     public partial class MainWindow : Window
     {
+        public class FilterItem
+        {
+            public string Item { get; set; }
+            public bool Selected { get; set; }
+        }
+
         public List<FilterItem> HighvalFilters { get; set; }
         public List<FilterItem> DiscardFilters { get; set; }
         private void InitializeFilterLists()
@@ -67,72 +73,64 @@ namespace RSSInterface
         private void Add_HighVal_Click(object sender, RoutedEventArgs e)
         {
             string input=(Microsoft.VisualBasic.Interaction.InputBox("Input regex for titles/urls to be flagged as high value.", "New High Value Filter", "Place regex here.")).Trim();
-
-            if (input != "Place regex here." && !string.IsNullOrEmpty(input))
+            using (new CursorWait())
             {
-                HighvalFilters.Add(new FilterItem()
+                if (input != "Place regex here." && !string.IsNullOrEmpty(input))
                 {
-                    Item = input,
-                    Selected = false
-                });
-                HighvalFilters = HighvalFilters.DistinctBy(x => x.Item).ToList();
-                    
-                HighValFilterDisplay.ItemsSource = null;
-                HighValFilterDisplay.ItemsSource = HighvalFilters;
+                    HighvalFilters.Add(new FilterItem()
+                    {
+                        Item = input,
+                        Selected = false
+                    });
+                    HighvalFilters = HighvalFilters.DistinctBy(x => x.Item).ToList();
+
+                    HighValFilterDisplay.ItemsSource = null;
+                    HighValFilterDisplay.ItemsSource = HighvalFilters;
+                }
             }
         }
 
         private void Add_Discard_Click(object sender, RoutedEventArgs e)
         {
             string input = (Microsoft.VisualBasic.Interaction.InputBox("Input regex for titles/urls to be flagged as high value.", "New High Value Filter", "Place regex here.")).Trim();
-
-            if (input != "Place regex here." && !string.IsNullOrEmpty(input))
+            using (new CursorWait())
             {
-                DiscardFilters.Add(new FilterItem()
+                if (input != "Place regex here." && !string.IsNullOrEmpty(input))
                 {
-                    Item = input,
-                    Selected = false
-                });
-                DiscardFilters = DiscardFilters.DistinctBy(x => x.Item).ToList();
+                    DiscardFilters.Add(new FilterItem()
+                    {
+                        Item = input,
+                        Selected = false
+                    });
+                    DiscardFilters = DiscardFilters.DistinctBy(x => x.Item).ToList();
 
-                DiscardFiltersDisplay.ItemsSource = null;
-                DiscardFiltersDisplay.ItemsSource = DiscardFilters;
+                    DiscardFiltersDisplay.ItemsSource = null;
+                    DiscardFiltersDisplay.ItemsSource = DiscardFilters;
+                }
             }
         }
 
         private void Delete_Selected_Filters_Click(object sender, RoutedEventArgs e)
         {
-
-            for(int i = 0; i < HighvalFilters.Count; i++)
+            using (new CursorWait())
             {
-                if (HighvalFilters[i].Selected)
-                {
-                    HighvalFilters.RemoveAt(i);
-                }
+                HighvalFilters.RemoveAll(x => x.Selected); 
+                HighValFilterDisplay.ItemsSource = null;
+                HighValFilterDisplay.ItemsSource = HighvalFilters;
+
+                DiscardFilters.RemoveAll(x => x.Selected);
+                DiscardFiltersDisplay.ItemsSource = null;
+                DiscardFiltersDisplay.ItemsSource = DiscardFilters;
             }
-
-            for (int i = 0; i < DiscardFilters.Count; i++)
-            {
-                if (DiscardFilters[i].Selected)
-                {
-                    DiscardFilters.RemoveAt(i);
-                }
-                
-
-            }
-
-
-            HighValFilterDisplay.ItemsSource = null;
-            HighValFilterDisplay.ItemsSource = HighvalFilters;
-
-            DiscardFiltersDisplay.ItemsSource = null;
-            DiscardFiltersDisplay.ItemsSource = DiscardFilters;
         }
 
         private void Save_Filter_Lists_Click(object sender, RoutedEventArgs e)
         {
-            File.WriteAllLines(Highvalpath.Text, HighvalFilters.Select(x  => x.Item).ToArray());
-            File.WriteAllLines(Discardpath.Text, DiscardFilters.Select(x  => x.Item).ToArray());
+            using (new CursorWait())
+            {
+                File.WriteAllLines(Highvalpath.Text, HighvalFilters.Select(x => x.Item).ToArray());
+                File.WriteAllLines(Discardpath.Text, DiscardFilters.Select(x => x.Item).ToArray());
+            }
         }
     }
 }

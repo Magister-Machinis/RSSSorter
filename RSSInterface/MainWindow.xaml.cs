@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -23,33 +24,30 @@ namespace RSSInterface
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<RssData> RssEntries { get; init; }
-        
+
+
         public MainWindow()
         {
-            InitializeComponent();
-
-            RssEntries= new List<RssData>()
-            { new RssData() {
-            URL = "example.com/rss",
-            Title  = "Create or load rss list to populate this table.",
-            Selected = true,
-            } };
-
-            //confirm or initiatilize feed list folder
-            if(!Directory.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists")))
+            using (new CursorWait())
             {
-                Directory.CreateDirectory(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists"));
+                InitializeComponent();
+
+                //initial feedlist tab
+                RssEntries = new List<RssData>();
+                InitializeFeedTab();
+
+
+
+
+                //initialize filter lists
+                HighvalFilters = new List<FilterItem>();
+                DiscardFilters = new List<FilterItem>();
+                InitializeFilterLists();
             }
 
-            //initialize filter lists
-            HighvalFilters = new List<FilterItem>();
-            DiscardFilters = new List<FilterItem>();
-            InitializeFilterLists();
-            
         }
 
-        
+
 
         private void RestricttoNumbers(object sender, TextCompositionEventArgs e)
         {
@@ -57,18 +55,16 @@ namespace RSSInterface
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        
-    }
-
-    public class RssData
-    {
-        public string URL { get; set; }
-        public string Title { get; set; }
-        public bool Selected { get; set; }
-    }
-    public class FilterItem
-    {
-        public string Item { get; set; }
-        public bool Selected { get; set; }
+        private class CursorWait: IDisposable
+        {
+            public CursorWait()
+            {
+                System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+            }
+            public void Dispose()
+            {
+                System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
+            }
+        }
     }
 }
