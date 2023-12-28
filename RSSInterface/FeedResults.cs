@@ -11,18 +11,13 @@ using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-
+using DataFormats;
 namespace RSSInterface
 {
     public partial class MainWindow : Window
     {
-        public class FeedResult
+        public class FeedResult : CSVLINES
         {
-            public string Title { get; set; }
-            public string Url { get; set; }
-            public string Source { get; set; }
-            public DateTime LastUpdate { get; set; }
-            public DateTime FirstPosted { get; set; }
             public bool Selected {get; set; } = false;
         }
         public List<FeedResult> FeedResults { get; set; }
