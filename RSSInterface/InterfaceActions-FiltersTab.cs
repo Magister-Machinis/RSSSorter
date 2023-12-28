@@ -92,7 +92,7 @@ namespace RSSInterface
 
         private void Add_Discard_Click(object sender, RoutedEventArgs e)
         {
-            string input = (Microsoft.VisualBasic.Interaction.InputBox("Input regex for titles/urls to be flagged as high value.", "New High Value Filter", "Place regex here.")).Trim();
+            string input = (Microsoft.VisualBasic.Interaction.InputBox("Input regex for titles/urls to be Discarded.", "New Discard Filter", "Place regex here.")).Trim();
             using (new CursorWait())
             {
                 if (input != "Place regex here." && !string.IsNullOrEmpty(input))
