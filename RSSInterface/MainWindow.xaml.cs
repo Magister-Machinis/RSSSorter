@@ -66,5 +66,7 @@ namespace RSSInterface
                 System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
             }
         }
+
+        
     }
 }

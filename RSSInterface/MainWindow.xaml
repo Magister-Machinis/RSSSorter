@@ -21,6 +21,7 @@
                     <TextBox Name="RuntimeHours" HorizontalAlignment="Left" Margin="167,62,0,0" TextWrapping="Wrap" Text="Hour(24h)" VerticalAlignment="Top" Width="60" Height="22" PreviewTextInput="RestricttoNumbers"/>
                     <TextBox Name="RunTimeMinutes" HorizontalAlignment="Left" Margin="229,64,0,0" TextWrapping="Wrap" Text="Minute" VerticalAlignment="Top" Width="58" Height="20" PreviewTextInput="RestricttoNumbers"/>
                     <TextBox Name="Retentiontime" HorizontalAlignment="Left" Margin="167,89,0,0" TextWrapping="Wrap" Text="Days to retain entries" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers"/>
+                    <Button Name="RunTaskNow" Content="Run Now" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Click="Run_now_Click" IsEnabled="False"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Discard / HighVal lists">
@@ -46,6 +47,17 @@
                     <Button Content="Remove Checked entries" HorizontalAlignment="Left" Margin="239,10,0,0" VerticalAlignment="Top" Name="Remove_Item_Feed_List" IsEnabled="False" Click="Remove_Checked_Feedlist_Click"/>
                     <DataGrid Name="RSSEntriesDisplay" Margin="0,36,0,0"/>
                     <Button Content="Retrieve Feed Information" HorizontalAlignment="Left" Margin="378,11,0,0" VerticalAlignment="Top" x:Name="Retrieve_Item_Feed_Info" IsEnabled="False" Click="Retrieve_Feedlist_Info"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Feed Results">
+                <Grid Background="#FFE5E5E5">
+                    <Button Content="Load All Results" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Load_all_results_Click"/>
+                    <DataGrid Name="FeedResultsDisplay" Margin="0,35,0,0"></DataGrid>
+                    <Button Content="Load Selected Results" HorizontalAlignment="Left" Margin="102,10,0,0" VerticalAlignment="Top" Click="Load_select_results_Click"/>
+                    <Button Content="Select All Entries" HorizontalAlignment="Left" Margin="225,10,0,0" VerticalAlignment="Top" Click="Select_all_Entries_click" />
+                    <Button Content="Select Entries Within Set Days" HorizontalAlignment="Left" Margin="321,10,0,0" VerticalAlignment="Top" Click="Select_Some_Entries_click" />
+                    <TextBox Name="Selectiontime" HorizontalAlignment="Left" Margin="487,12,0,0" TextWrapping="Wrap" Text="8" VerticalAlignment="Top" Width="15" PreviewTextInput="RestricttoNumbers"/>
+                    <Button Content="Load Selected Entries" HorizontalAlignment="Left" Margin="507,10,0,0" VerticalAlignment="Top" Click="Load_Selected_Entries_Click" />
                 </Grid>
             </TabItem>
         </TabControl>

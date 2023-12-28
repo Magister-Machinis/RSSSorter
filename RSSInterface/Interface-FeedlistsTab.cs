@@ -18,14 +18,16 @@ namespace RSSInterface
 {
     public partial class MainWindow : Window
     {
-        public List<RssData> RssEntries { get; set; }
-        private string FeedlistPath;
         public class RssData
         {
             public string URL { get; set; }
             public string Title { get; set; }
             public bool Selected { get; set; }
         }
+        public List<RssData> RssEntries { get; set; }
+
+        private string FeedlistPath;
+        
 
         private void InitializeFeedTab()
         {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32.TaskScheduler;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -45,6 +46,7 @@ namespace RSSInterface
 
             scheduledtask.RegisterChanges();
             scheduledtask.Dispose();
+            RunTaskNow.IsEnabled=true;
         }
         private bool Check_if_Task_exists()
         {
@@ -62,7 +64,15 @@ namespace RSSInterface
                 {
                     ts.RootFolder.DeleteTask(taskname);
                 }
-                
+                RunTaskNow.IsEnabled = false;
+            }
+        }
+
+        private void Run_now_Click(object sender, RoutedEventArgs e)
+        {
+            using (new CursorWait())
+            {
+                Process.Start(new ProcessStartInfo("cmd", $"/c schtasks /run /tn {taskname}"));
             }
         }
     }
