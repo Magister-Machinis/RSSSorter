@@ -387,36 +387,34 @@ namespace RSSSorter
             List<CSVLINES> rssCsv = new List<CSVLINES>();
             try
             {
-                using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(rssurl).Result))
+                SyndicationFeed syndicationFeed = new RSSHandler().GetFeed(rssurl);
+
+                foreach (SyndicationItem item in syndicationFeed.Items)
                 {
-                    SyndicationFeed syndicationFeed = SyndicationFeed.Load(xmlReader);
-
-                    foreach (SyndicationItem item in syndicationFeed.Items)
+                    rssCsv.Add(new CSVLINES
                     {
-                        rssCsv.Add(new CSVLINES
-                        {
-                            Title = item.Title.Text,
-                            Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
-                            Source = syndicationFeed.Title.Text,
-                            LastUpdate = item.LastUpdatedTime.DateTime,
-                            FirstPosted = item.PublishDate.DateTime
-                        });
+                        Title = item.Title.Text,
+                        Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
+                        Source = syndicationFeed.Title.Text,
+                        LastUpdate = item.LastUpdatedTime.DateTime,
+                        FirstPosted = item.PublishDate.DateTime
+                    });
 
-                        //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
-                        if (rssCsv.Last().Source.Contains("Google Alert"))
-                        {
-                            rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
-                        }
-
-
-                        //small check to account for feeds that only populate the last updated field with a placeholder
-                        if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
-                        {
-                            rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
-                        }
+                    //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
+                    if (rssCsv.Last().Source.Contains("Google Alert"))
+                    {
+                        rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
                     }
 
+
+                    //small check to account for feeds that only populate the last updated field with a placeholder
+                    if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
+                    {
+                        rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
+                    }
                 }
+
+                
                 
             }
             catch(Exception e)

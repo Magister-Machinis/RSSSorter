@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Shapes;
 using System.Xml;
+using DataFormats;
 
 namespace RSSInterface
 {
@@ -187,14 +188,8 @@ namespace RSSInterface
         {
             try
             {
-                using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(RssEntries[i].URL).Result))
-                {
-                    XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
-                    xmlReaderSettings.DtdProcessing = DtdProcessing.Parse;
-                    xmlReaderSettings.MaxCharactersFromEntities = 2048;
-                    SyndicationFeed feed = SyndicationFeed.Load(xmlReader);
-                    return feed.Title.Text;
-                }
+                return new RSSHandler().GetFeed(RssEntries[i].URL).Title.Text;
+                
             }
             catch(Exception e)
             {

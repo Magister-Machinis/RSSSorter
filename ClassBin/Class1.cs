@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net.Http;
+using System.Xml;
+using System.ServiceModel.Syndication;
 
 namespace DataFormats
 {
@@ -16,14 +19,26 @@ namespace DataFormats
         public DateTime LastUpdate { get; set; }
         public DateTime FirstPosted { get; set; }
 
-        public override bool Equals(object obj)
-        {
-            return ((CSVLINES)obj).Url == Url;
-        }
 
-        public override int GetHashCode()
+
+    }
+
+    /// <summary>
+    /// wrapper class to centralize rss/atom retrieval and parsing
+    /// </summary>
+    public class RSSHandler
+    {
+        public SyndicationFeed GetFeed(string url)
         {
-            return Url.GetHashCode();
+            XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
+            xmlReaderSettings.DtdProcessing = DtdProcessing.Parse;
+            xmlReaderSettings.MaxCharactersFromEntities = 2048;
+            using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(url).Result, xmlReaderSettings))
+            {
+
+                return SyndicationFeed.Load(xmlReader);
+
+            }
         }
     }
 }
