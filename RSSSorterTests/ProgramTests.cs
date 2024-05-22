@@ -15,7 +15,7 @@ namespace RSSSorter.Tests
         [TestMethod()]
         public void MainTest()
         {
-            string[] rssurls = { "https://www.google.com/alerts/feeds/05999718615320080555/4574872169044351658", "https://krebsonsecurity.com/feed/", "https://www.google.com/alerts/feeds/05999718615320080555/11815055537862344919" };
+            string[] rssurls = { "https://www.google.com/alerts/feeds/05999718615320080555/4574872169044351658", "https://krebsonsecurity.com/feed/", "https://www.google.com/alerts/feeds/05999718615320080555/11815055537862344919", "https://hachyderm.io/@shortridge.rss" };
             try
             {
                 Directory.CreateDirectory(@".\input");
