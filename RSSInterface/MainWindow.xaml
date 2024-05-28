@@ -59,8 +59,9 @@
                     <TextBox Name="Selectiontime" HorizontalAlignment="Left" Margin="321,35,0,0" TextWrapping="Wrap" Text="8" VerticalAlignment="Top" Width="161" PreviewTextInput="RestricttoNumbers"/>
                     <Button Content="Load Selected Entries" HorizontalAlignment="Left" Margin="507,10,0,0" VerticalAlignment="Top" Click="Load_Selected_Entries_Click" Name="LoadSelectedEntries"/>
                     <CheckBox Content="Segmented Load" HorizontalAlignment="Left" Margin="629,12,0,0" VerticalAlignment="Top" Name="Segmented_Checkbox" Click="Segmented_Checkbox_Click"/>
-                    <TextBox HorizontalAlignment="Left" Margin="629,32,0,0" TextWrapping="Wrap" Text="SegmentSize" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers" IsEnabled="False" Name="SegmentSize"/>
+                    <TextBox HorizontalAlignment="Left" Margin="629,32,0,0" TextWrapping="Wrap" Text="SegmentSize" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers" IsEnabled="False" Name="SegmentSize" Height="21"/>
                     <TextBlock HorizontalAlignment="Left" Margin="10,35,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="306" Name="MessageBlock" Height="18"/>
+                    <Button Content="Continue" HorizontalAlignment="Left" Margin="572,35,0,0" VerticalAlignment="Top" Height="18" IsEnabled="False" Name="ContinueButton" Click="ContinueButton_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

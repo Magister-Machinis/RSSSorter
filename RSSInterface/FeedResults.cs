@@ -133,7 +133,7 @@ namespace RSSInterface
         }
         private void Load_select_results_Completed(object? sender, RunWorkerCompletedEventArgs e)
         {
-            togglefeedbuttons(false);
+            togglefeedbuttons(true);
             this.Dispatcher.Invoke(new Action(() =>
             {                
                 MessageBlock.Text = "All entries loaded";
@@ -144,14 +144,14 @@ namespace RSSInterface
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
-                MessageBox.Show("Click ok to begin loading next segment");
-                MessageBlock.Text = "Continuing";
+                ContinueButton.IsEnabled = true;
+                MessageBlock.Text = "Click continue to load next segment";
             }));
         }
 
         private void Load_select_results_Worker(object? sender, DoWorkEventArgs e)
         {
-            togglefeedbuttons(true);
+            togglefeedbuttons(false);
             this.Dispatcher.Invoke(new Action(() =>
             {
                 MessageBlock.Text = "Loading Results";
@@ -180,7 +180,7 @@ namespace RSSInterface
                         do
                         {
                             this.Dispatcher.Invoke(new Action(() => { status = MessageBlock.Text; }));
-                            Thread.Sleep(5000);
+                            Thread.Sleep(3000);
                         } while (status != "Continuing");
                         this.Dispatcher.Invoke(new Action(() =>
                         {

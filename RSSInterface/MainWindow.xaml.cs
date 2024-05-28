@@ -79,5 +79,11 @@ namespace RSSInterface
                 SegmentSize.Text = "25";
             }
         }
+
+        private void ContinueButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBlock.Text = "Continuing";
+            ContinueButton.IsEnabled = false;
+        }
     }
 }
