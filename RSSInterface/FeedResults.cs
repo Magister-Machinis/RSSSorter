@@ -184,6 +184,7 @@ namespace RSSInterface
                         } while (status != "Continuing");
                         this.Dispatcher.Invoke(new Action(() =>
                         {
+                            segmentlimit = int.Parse(SegmentSize.Text);
                             MessageBlock.Text = "Loading Results";
                         }));
                         count = 0;
