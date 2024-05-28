@@ -7,11 +7,11 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.RightsManagement;
-using System.Text;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using DataFormats;
+using System.Threading;
 namespace RSSInterface
 {
     public partial class MainWindow : Window
@@ -73,6 +73,7 @@ namespace RSSInterface
 
                         FeedResultsDisplay.ItemsSource = null;
                         FeedResultsDisplay.ItemsSource = FeedResults;
+                        MessageBlock.Text = $"{FeedResults.Count} items loaded";
                     }
                 }
             }
@@ -90,11 +91,13 @@ namespace RSSInterface
         {
             using(new CursorWait())
             {
+                int count = 0;
                 foreach(FeedResult item in  FeedResults)
                 {
                     if(item.LastUpdate >  DateTime.Now.AddDays(days*-1))
                     {
                         item.Selected = true;
+                        count++;
                     }
                     else
                     {
@@ -104,16 +107,85 @@ namespace RSSInterface
 
                 FeedResultsDisplay.ItemsSource = null;
                 FeedResultsDisplay.ItemsSource = FeedResults;
+                MessageBlock.Text = $"{count} items selected";
             }
         }
 
+        BackgroundWorker worker = new BackgroundWorker();
         private void Load_Selected_Entries_Click(object sender, RoutedEventArgs e)
+        {            
+            worker.DoWork += Load_select_results_Worker;
+            worker.ProgressChanged += Load_select_results_progress;
+            worker.RunWorkerCompleted += Load_select_results_Completed;
+            worker.WorkerReportsProgress = true;
+            worker.RunWorkerAsync();
+        }
+
+        private void Load_select_results_Completed(object? sender, RunWorkerCompletedEventArgs e)
         {
-            using (new CursorWait())
+            this.Dispatcher.Invoke(new Action(() =>
             {
-                foreach (FeedResult item in FeedResults.Where(x => x.Selected ==true))
+                LoadEntriesButton.IsEnabled = true;
+                MessageBlock.Text = "All entries loaded";
+            }));
+        }
+
+        private void Load_select_results_progress(object? sender, ProgressChangedEventArgs e)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                MessageBox.Show("Click ok to begin loading next segment");
+                MessageBlock.Text = "Continuing";
+            }));
+        }
+
+        private void Load_select_results_Worker(object? sender, DoWorkEventArgs e)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                LoadEntriesButton.IsEnabled = false;
+                MessageBlock.Text = "Loading Results";
+            }));
+            
+            int count = 0;
+            bool? segments = false;
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+               segments = Segmented_Checkbox.IsChecked;
+            }));
+            if ( segments == true)
+            {
+                string status = "init";
+                int segmentlimit = 0;
+                this.Dispatcher.Invoke(new Action(() =>
+                { 
+                    segmentlimit = int.Parse(SegmentSize.Text);
+                }));
+                foreach (FeedResult item in FeedResults.Where(x => x.Selected == true))
                 {
-                   Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
+                    Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
+                    if (count > segmentlimit)
+                    {
+                        worker.ReportProgress(1);
+                        do
+                        {
+                            this.Dispatcher.Invoke(new Action(() => { status = MessageBlock.Text; }));
+                            Thread.Sleep(5000);
+                        } while (status != "Continuing");
+                        this.Dispatcher.Invoke(new Action(() =>
+                        {
+                            MessageBlock.Text = "Loading Results";
+                        }));
+                        count = 0;
+                    }
+                    count++;
+                }
+            }
+            else
+            {
+                foreach (FeedResult item in FeedResults.Where(x => x.Selected == true))
+                {
+                    Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
                 }
             }
         }

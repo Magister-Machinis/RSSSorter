@@ -67,6 +67,16 @@ namespace RSSInterface
             }
         }
 
-        
+        private void Segmented_Checkbox_Click(object sender, RoutedEventArgs e)
+        {
+            if (SegmentSize.IsEnabled)
+            {
+                SegmentSize.IsEnabled = false;
+            }
+            else
+            {
+                SegmentSize.IsEnabled = true;
+            }
+        }
     }
 }
