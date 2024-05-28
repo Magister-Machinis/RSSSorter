@@ -120,12 +120,22 @@ namespace RSSInterface
             worker.WorkerReportsProgress = true;
             worker.RunWorkerAsync();
         }
-
-        private void Load_select_results_Completed(object? sender, RunWorkerCompletedEventArgs e)
+        private void togglefeedbuttons(bool toggle)
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
-                LoadEntriesButton.IsEnabled = true;
+                LoadEntriesButton.IsEnabled = toggle;
+                SelectAllEntriesButton.IsEnabled=toggle;
+                SelectEntriesDaysButton.IsEnabled=toggle;
+                LoadAllResults.IsEnabled=toggle;
+                LoadSelectedEntries.IsEnabled=toggle;
+            }));
+        }
+        private void Load_select_results_Completed(object? sender, RunWorkerCompletedEventArgs e)
+        {
+            togglefeedbuttons(false);
+            this.Dispatcher.Invoke(new Action(() =>
+            {                
                 MessageBlock.Text = "All entries loaded";
             }));
         }
@@ -141,9 +151,9 @@ namespace RSSInterface
 
         private void Load_select_results_Worker(object? sender, DoWorkEventArgs e)
         {
+            togglefeedbuttons(true);
             this.Dispatcher.Invoke(new Action(() =>
             {
-                LoadEntriesButton.IsEnabled = false;
                 MessageBlock.Text = "Loading Results";
             }));
             

@@ -76,6 +76,7 @@ namespace RSSInterface
             else
             {
                 SegmentSize.IsEnabled = true;
+                SegmentSize.Text = "25";
             }
         }
     }

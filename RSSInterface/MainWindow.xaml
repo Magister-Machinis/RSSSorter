@@ -51,13 +51,13 @@
             </TabItem>
             <TabItem Header="Feed Results">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Load All Results" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Load_all_results_Click"/>
+                    <Button Content="Load All Results" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Load_all_results_Click" Name="LoadAllResults"/>
                     <DataGrid Name="FeedResultsDisplay" Margin="0,58,0,0"></DataGrid>
                     <Button Content="Load Selected Results" HorizontalAlignment="Left" Margin="102,10,0,0" VerticalAlignment="Top" Click="Load_select_results_Click" Name="LoadEntriesButton"/>
-                    <Button Content="Select All Entries" HorizontalAlignment="Left" Margin="225,10,0,0" VerticalAlignment="Top" Click="Select_all_Entries_click" />
-                    <Button Content="Select Entries Within Set Days" HorizontalAlignment="Left" Margin="321,10,0,0" VerticalAlignment="Top" Click="Select_Some_Entries_click" />
+                    <Button Content="Select All Entries" HorizontalAlignment="Left" Margin="225,10,0,0" VerticalAlignment="Top" Click="Select_all_Entries_click" Name="SelectAllEntriesButton"/>
+                    <Button Content="Select Entries Within Set Days" HorizontalAlignment="Left" Margin="321,10,0,0" VerticalAlignment="Top" Click="Select_Some_Entries_click" Name="SelectEntriesDaysButton"/>
                     <TextBox Name="Selectiontime" HorizontalAlignment="Left" Margin="321,35,0,0" TextWrapping="Wrap" Text="8" VerticalAlignment="Top" Width="161" PreviewTextInput="RestricttoNumbers"/>
-                    <Button Content="Load Selected Entries" HorizontalAlignment="Left" Margin="507,10,0,0" VerticalAlignment="Top" Click="Load_Selected_Entries_Click" />
+                    <Button Content="Load Selected Entries" HorizontalAlignment="Left" Margin="507,10,0,0" VerticalAlignment="Top" Click="Load_Selected_Entries_Click" Name="LoadSelectedEntries"/>
                     <CheckBox Content="Segmented Load" HorizontalAlignment="Left" Margin="629,12,0,0" VerticalAlignment="Top" Name="Segmented_Checkbox" Click="Segmented_Checkbox_Click"/>
                     <TextBox HorizontalAlignment="Left" Margin="629,32,0,0" TextWrapping="Wrap" Text="SegmentSize" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers" IsEnabled="False" Name="SegmentSize"/>
                     <TextBlock HorizontalAlignment="Left" Margin="10,35,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="306" Name="MessageBlock" Height="18"/>
