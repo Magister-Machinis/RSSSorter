@@ -173,23 +173,27 @@ namespace RSSSorter
         static async Task<ResultStatus> UpdateRSSlists(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
         {
             //determine if we are dealing with a new rss feed list or not
-            try
+            ResultStatus status = new ResultStatus();
+            await Task.Run(() =>
             {
-                if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
+                try
                 {
-                    return updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
+                    if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
+                    {
+                        status = updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
+                    }
+                    else
+                    {
+                        status = Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
+                    }
+
                 }
-                else
+                catch (Exception e)
                 {
-                    return Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
+                    status = new ResultStatus { IsSuccess = false, message = e.Message };
                 }
-                
-            }
-            catch (Exception e)
-            {
-                return new ResultStatus { IsSuccess=false, message=e.Message };
-            }
-            
+            });
+            return status;
         }
 
         /// <summary>
@@ -387,52 +391,53 @@ namespace RSSSorter
             List<CSVLINES> rssCsv = new List<CSVLINES>();
             try
             {
-                SyndicationFeed syndicationFeed = new RSSHandler().GetFeed(rssurl);
-                //exception catch for mastodon rss feeds
-                if (syndicationFeed.Generator != null && syndicationFeed.Generator.ToLower().Contains("mastodon"))
+                await Task.Run(() =>
                 {
-                    foreach(SyndicationItem item in syndicationFeed.Items)
+                    SyndicationFeed syndicationFeed = new RSSHandler().GetFeed(rssurl);
+                    //exception catch for mastodon rss feeds
+                    if (syndicationFeed.Generator != null && syndicationFeed.Generator.ToLower().Contains("mastodon"))
                     {
-                        rssCsv.Add(new CSVLINES
+                        foreach (SyndicationItem item in syndicationFeed.Items)
                         {
-                            Title = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
-                            Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
-                            Source = syndicationFeed.Title.Text,
-                            FirstPosted = item.PublishDate.DateTime,
-                            LastUpdate = item.PublishDate.DateTime
-                        });
-                    }
-                }
-                else
-                {
-                    foreach (SyndicationItem item in syndicationFeed.Items)
-                    {
-
-                        rssCsv.Add(new CSVLINES
-                        {
-                            Title = item.Title.Text,
-                            Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
-                            Source = syndicationFeed.Title.Text,
-                            LastUpdate = item.LastUpdatedTime.DateTime,
-                            FirstPosted = item.PublishDate.DateTime
-                        });
-
-                        //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
-                        if (rssCsv.Last().Source.Contains("Google Alert"))
-                        {
-                            rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
-                        }
-
-
-                        //small check to account for feeds that only populate the last updated field with a placeholder
-                        if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
-                        {
-                            rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
+                            rssCsv.Add(new CSVLINES
+                            {
+                                Title = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
+                                Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
+                                Source = syndicationFeed.Title.Text,
+                                FirstPosted = item.PublishDate.DateTime,
+                                LastUpdate = item.PublishDate.DateTime
+                            });
                         }
                     }
-                }
+                    else
+                    {
+                        foreach (SyndicationItem item in syndicationFeed.Items)
+                        {
 
-                
+                            rssCsv.Add(new CSVLINES
+                            {
+                                Title = item.Title.Text,
+                                Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
+                                Source = syndicationFeed.Title.Text,
+                                LastUpdate = item.LastUpdatedTime.DateTime,
+                                FirstPosted = item.PublishDate.DateTime
+                            });
+
+                            //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
+                            if (rssCsv.Last().Source.Contains("Google Alert"))
+                            {
+                                rssCsv.Last().Url = HttpUtility.ParseQueryString(rssCsv.Last().Url)["url"];
+                            }
+
+
+                            //small check to account for feeds that only populate the last updated field with a placeholder
+                            if (rssCsv.Last().LastUpdate < DateTime.Now.AddDays(-7))
+                            {
+                                rssCsv.Last().LastUpdate = rssCsv.Last().FirstPosted;
+                            }
+                        }
+                    }
+                });                
                 
             }
             catch(Exception e)

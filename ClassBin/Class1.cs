@@ -43,7 +43,7 @@ namespace DataFormats
                     return SyndicationFeed.Load(xmlReader);
                 }
             }
-            catch(Exception e)
+            catch
             {
                 throw;
             }
