@@ -33,11 +33,23 @@ namespace DataFormats
             XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
             xmlReaderSettings.DtdProcessing = DtdProcessing.Parse;
             xmlReaderSettings.MaxCharactersFromEntities = 2048;
-            using (XmlReader xmlReader = XmlReader.Create(new HttpClient().GetStreamAsync(url).Result, xmlReaderSettings))
+            HttpClient httpClient = new HttpClient();
+            try
             {
-
-                return SyndicationFeed.Load(xmlReader);
-
+                
+                httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                using (XmlReader xmlReader = XmlReader.Create(httpClient.GetStreamAsync(url).Result, xmlReaderSettings))
+                {
+                    return SyndicationFeed.Load(xmlReader);
+                }
+            }
+            catch(Exception e)
+            {
+                throw;
+            }
+            finally
+            {
+                httpClient.Dispose();
             }
         }
     }

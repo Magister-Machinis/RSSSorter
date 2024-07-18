@@ -103,7 +103,7 @@ namespace RSSSorter
 
             }
 
-            Task<ResultStatus>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(async rssfile => await UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
+            Task<ResultStatus>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(rssfile => UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
 
             Task.WaitAll(tasks);
 
@@ -248,7 +248,7 @@ namespace RSSSorter
         {
             try
             {
-                List<Task<CSVLINES[]>> newalerts = File.ReadAllLines(rssfile.FullName).Select(async rssurl => await GetRssUpdate(rssurl)).ToList();
+                List<Task<CSVLINES[]>> newalerts = File.ReadAllLines(rssfile.FullName).Select( rssurl => GetRssUpdate(rssurl)).ToList();
                 List<CSVLINES> erroralerts = new List<CSVLINES>();
                 string[] highval = File.ReadAllLines(highvaluelist);
                 string[] discard = File.ReadAllLines(discardlist);
