@@ -85,5 +85,6 @@ namespace RSSInterface
             MessageBlock.Text = "Continuing";
             ContinueButton.IsEnabled = false;
         }
+        
     }
 }

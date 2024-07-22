@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -130,6 +131,42 @@ namespace RSSInterface
             {
                 File.WriteAllLines(Highvalpath.Text, HighvalFilters.Select(x => x.Item).ToArray());
                 File.WriteAllLines(Discardpath.Text, DiscardFilters.Select(x => x.Item).ToArray());
+            }
+        }
+
+        private void Validate_Regex_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> erroredregex = new List<string>();
+            foreach (string regex in HighvalFilters.Select(x => x.Item))
+            {
+                try
+                {
+                    Regex.Match("", regex);
+                }
+                catch (ArgumentException)
+                {
+                    erroredregex.Add(regex);
+                }
+            }
+            foreach (string regex in DiscardFilters.Select(x => x.Item))
+            {
+                try
+                {
+                    Regex.Match("", regex);
+                }
+                catch (ArgumentException)
+                {
+                    erroredregex.Add(regex);
+                }
+            }
+            if(erroredregex.Count > 0)
+            {
+                string errormsg = string.Join(Environment.NewLine, erroredregex);
+                MessageBox.Show(errormsg,"Following filters returned an error.", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                MessageBox.Show("All filters are valid regex", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }

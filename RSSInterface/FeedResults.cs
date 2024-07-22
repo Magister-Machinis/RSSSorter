@@ -149,7 +149,7 @@ namespace RSSInterface
             }));
         }
 
-        private void Load_select_results_Worker(object? sender, DoWorkEventArgs e)
+        private async void Load_select_results_Worker(object? sender, DoWorkEventArgs e)
         {
             togglefeedbuttons(false);
             this.Dispatcher.Invoke(new Action(() =>
@@ -173,7 +173,7 @@ namespace RSSInterface
                 }));
                 foreach (FeedResult item in FeedResults.Where(x => x.Selected == true))
                 {
-                    Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
+                    await Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
                     if (count > segmentlimit)
                     {
                         worker.ReportProgress(1);
@@ -196,7 +196,7 @@ namespace RSSInterface
             {
                 foreach (FeedResult item in FeedResults.Where(x => x.Selected == true))
                 {
-                    Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
+                   await Task.Run(() => Process.Start(new ProcessStartInfo("cmd", $"/c start {item.Url}")));
                 }
             }
         }

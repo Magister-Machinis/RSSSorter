@@ -36,6 +36,7 @@
                     <DataGrid Name="DiscardFiltersDisplay" Margin="397,81,0,0"/>
                     <TextBlock HorizontalAlignment="Left" Margin="559,60,0,0" TextWrapping="Wrap" Text="Discard Filters" VerticalAlignment="Top"/>
                     <Button Content="Save Lists" HorizontalAlignment="Left" Margin="418,33,0,0" VerticalAlignment="Top" Click="Save_Filter_Lists_Click"/>
+                    <Button Content="Validate regex" HorizontalAlignment="Left" Margin="478,33,0,0" VerticalAlignment="Top" Click="Validate_Regex_Click"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Feed Lists">
