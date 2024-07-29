@@ -378,7 +378,7 @@ namespace RSSSorter
         static bool checkcontent(string particle, CSVLINES line)
         {
             Regex regex = new Regex(particle, RegexOptions.IgnoreCase);
-            return regex.IsMatch(line.Title) || regex.IsMatch(line.Url);
+            return (line.Snippet != "Summary not available in a parsable manner" && regex.IsMatch(line.Snippet)) || regex.IsMatch(line.Title) || regex.IsMatch(line.Url);
         }
 
         /// <summary>
@@ -405,7 +405,8 @@ namespace RSSSorter
                                 Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
                                 Source = syndicationFeed.Title.Text,
                                 FirstPosted = item.PublishDate.DateTime,
-                                LastUpdate = item.PublishDate.DateTime
+                                LastUpdate = item.PublishDate.DateTime,
+                                Snippet = item.Summary == null ? "Summary not available in a parsable manner" : item.Summary.Text
                             });
                         }
                     }
@@ -420,7 +421,8 @@ namespace RSSSorter
                                 Url = item.Links.Select(x => x.GetAbsoluteUri().AbsoluteUri).Where(x => NotanImage(x)).First(),
                                 Source = syndicationFeed.Title.Text,
                                 LastUpdate = item.LastUpdatedTime.DateTime,
-                                FirstPosted = item.PublishDate.DateTime
+                                FirstPosted = item.PublishDate.DateTime,
+                                Snippet = item.Summary == null ? "Summary not available in a parsable manner" : item.Summary.Text 
                             });
 
                             //common edge case to retrieve url from google alert redirect urls to facillitate deduplication better
