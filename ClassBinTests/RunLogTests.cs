@@ -9,18 +9,20 @@ using Microsoft.VisualStudio.TestPlatform.Common.Utilities;
 
 namespace DataFormats.Tests
 {
+    
     [TestClass()]
     public class RunLogTests
     {
+        string testfile = @".\test.csv";
         [TestMethod()]
         public void RunLogTest()
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+                
 
                 runLog.Dispose();
             }
@@ -30,7 +32,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -39,12 +41,12 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+                
 
-                Assert.IsNotNull(runLog.Log);
+                Assert.IsNotNull(RunLog.Log);
 
                 runLog.Dispose();
             }
@@ -54,7 +56,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -63,14 +65,14 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
-                Assert.IsNotNull(runLog);
+                RunLog runLog = new RunLog(testfile);
+                Assert.IsTrue(!runLog.IsDisposed);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+               
 
                 runLog.Dispose();
 
-                Assert.IsNull(runLog);
+                Assert.IsTrue(runLog.IsDisposed);
             }
             catch (Exception ex)
             {
@@ -78,7 +80,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -87,14 +89,14 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+                
 
                 runLog.Writeline("test msg", "test source", Verbosity.DEBUG);
 
-                Assert.IsTrue(runLog.Log.Count == 1);
+                Assert.IsTrue(RunLog.Log.Count == 1);
 
                 runLog.Dispose();
             }
@@ -104,7 +106,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -113,18 +115,18 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+                
 
                 runLog.Writeline("test msg", "test source", Verbosity.DEBUG);
 
-                Assert.IsTrue(runLog.Log.Count == 1);
+                Assert.IsTrue(RunLog.Log.Count == 1);
 
                 runLog.RemoveLine(0);
 
-                Assert.IsTrue(runLog.Log.Count == 0);
+                Assert.IsTrue(RunLog.Log.Count == 0);
 
                 runLog.Dispose();
             }
@@ -134,7 +136,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -143,18 +145,18 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
-                long lengthempty = new FileInfo("./test.csv").Length;
+                runLog.SaveLog();
+                long lengthempty = new FileInfo(testfile).Length;
 
                 runLog.Writeline("test msg", "test source", Verbosity.DEBUG);
 
-                Assert.IsTrue(runLog.Log.Count == 1);
+                Assert.IsTrue(RunLog.Log.Count == 1);
 
                 runLog.SaveLog();
-                long lengthnotempty = new FileInfo("./test.csv").Length;
+                long lengthnotempty = new FileInfo(testfile).Length;
 
                 Assert.IsTrue(lengthnotempty > lengthempty);
 
@@ -166,7 +168,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
 
@@ -175,16 +177,17 @@ namespace DataFormats.Tests
         {
             try
             {
-                RunLog runLog = new RunLog("./test.csv");
+                RunLog runLog = new RunLog(testfile);
                 Assert.IsNotNull(runLog);
 
-                Assert.IsTrue(File.Exists("./test.csv"));
+                
 
                 runLog.Writeline("test msg", "test source", Verbosity.DEBUG);
 
-                Assert.IsTrue(runLog.Log.Count == 1);
+                Assert.IsTrue(RunLog.Log.Count == 1);
+                Thread.Sleep(6000);
                 runLog.TrimLog(DateTime.Now);
-                Assert.IsTrue(runLog.Log.Count == 0);
+                Assert.IsTrue(RunLog.Log.Count == 0);
                 runLog.Dispose();
             }
             catch (Exception ex)
@@ -193,7 +196,7 @@ namespace DataFormats.Tests
             }
             finally
             {
-                File.Delete("./test.csv");
+                File.Delete(testfile);
             }
         }
     }

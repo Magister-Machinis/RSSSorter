@@ -51,8 +51,8 @@ namespace DataFormats
     public class RunLog : IDisposable
     {
         private string logpath;
-        public List<RunLogLines> Log;
-        private Lock Lock;
+        static public List<RunLogLines> Log;
+        static private Lock Lock = new Lock();
 
         private bool disposed = false;
         /// <summary>
@@ -62,16 +62,16 @@ namespace DataFormats
         public RunLog(string logpath)
         {
             this.logpath = logpath;
-            this.Lock = new Lock();
-            using (this.Lock.EnterScope())
+            
+            using (RunLog.Lock.EnterScope())
             {
-                if (File.Exists(this.logpath))
+                if (File.Exists(this.logpath) && RunLog.Log == null)
                 {
-                    this.Log = this.GetLog().ToList<RunLogLines>();
+                    RunLog.Log = this.GetLog().ToList<RunLogLines>();
                 }
-                else
+                else if (RunLog.Log == null)
                 {
-                    this.Log = new List<RunLogLines>();
+                    RunLog.Log = new List<RunLogLines>();
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace DataFormats
         /// <returns>Logs as array of objects</returns>
         public RunLogLines[] GetLog()
         {
-            using (this.Lock.EnterScope())
+            using (RunLog.Lock.EnterScope())
             {
                 using (StreamReader sr = new StreamReader(this.logpath))
                 {
@@ -100,6 +100,13 @@ namespace DataFormats
             }
         }
 
+        public bool IsDisposed
+        {
+            get
+            {
+                return disposed;
+            }
+        }
         public void Dispose()
         {
             Dispose(true);
@@ -126,9 +133,9 @@ namespace DataFormats
         /// <param name="verbosity">verbosity enum</param>
         public void Writeline(string line, string source, Verbosity verbosity )
         {
-            using (this.Lock.EnterScope())
+            using (RunLog.Lock.EnterScope())
             {
-                this.Log.Add(new RunLogLines()
+                RunLog.Log.Add(new RunLogLines()
                 {
                     Message = line,
                     Source = source,
@@ -143,14 +150,14 @@ namespace DataFormats
         /// <param name="linenumber">line to remove</param>
         public void RemoveLine(int linenumber)
         {            
-            using (this.Lock.EnterScope())
+            using (RunLog.Lock.EnterScope())
             {
-                this.Log.RemoveAt(linenumber);
+                RunLog.Log.RemoveAt(linenumber);
             }
         }
         public void SaveLog()
         {
-            using (this.Lock.EnterScope())
+            using (RunLog.Lock.EnterScope())
             {
                 if (File.Exists(this.logpath))
                 {
@@ -160,7 +167,7 @@ namespace DataFormats
                 {
                     using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
                     {
-                        csvwriter.WriteRecords(this.Log);
+                        csvwriter.WriteRecords(RunLog.Log);
                     }
                 }
             }
@@ -171,11 +178,11 @@ namespace DataFormats
         /// <param name="cuttof">any lines older than this date will be removed from log</param>
         public void TrimLog (DateTime cuttof)
         {
-            using (this.Lock.EnterScope())
+            using (RunLog.Lock.EnterScope())
             {
-                for (int i = 0; i < this.Log.Count; i++)
+                for (int i = 0; i < RunLog.Log.Count; i++)
                 {
-                    if (this.Log[i].TimeStamp > cuttof)
+                    if (RunLog.Log[i].TimeStamp < cuttof)
                     {
                         this.RemoveLine(i);
                         i--;
