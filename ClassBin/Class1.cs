@@ -8,9 +8,12 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Swift;
+using System.Security.AccessControl;
 using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml;
 
 namespace DataFormats
@@ -49,6 +52,7 @@ namespace DataFormats
     {
         private string logpath;
         public List<RunLogLines> Log;
+        private Lock Lock;
 
         private bool disposed = false;
         /// <summary>
@@ -58,14 +62,17 @@ namespace DataFormats
         public RunLog(string logpath)
         {
             this.logpath = logpath;
-            
-            if(File.Exists(this.logpath))
+            this.Lock = new Lock();
+            using (this.Lock.EnterScope())
             {
-                this.Log = this.GetLog().ToList<RunLogLines>();
-            }
-            else
-            {
-                this.Log = new List<RunLogLines>();
+                if (File.Exists(this.logpath))
+                {
+                    this.Log = this.GetLog().ToList<RunLogLines>();
+                }
+                else
+                {
+                    this.Log = new List<RunLogLines>();
+                }
             }
         }
         ~RunLog() { Dispose(false); }
@@ -75,17 +82,20 @@ namespace DataFormats
         /// <returns>Logs as array of objects</returns>
         public RunLogLines[] GetLog()
         {
-            using (StreamReader sr = new StreamReader(this.logpath))
+            using (this.Lock.EnterScope())
             {
-                using (CsvReader csv = new CsvReader(sr, new CsvConfiguration(CultureInfo.InvariantCulture)
+                using (StreamReader sr = new StreamReader(this.logpath))
                 {
-                    MissingFieldFound = null,
-                    HeaderValidated = null
-                }))
-                {
+                    using (CsvReader csv = new CsvReader(sr, new CsvConfiguration(CultureInfo.InvariantCulture)
+                    {
+                        MissingFieldFound = null,
+                        HeaderValidated = null
+                    }))
+                    {
 
-                    return csv.GetRecords<RunLogLines>().ToArray<RunLogLines>();
-                    
+                        return csv.GetRecords<RunLogLines>().ToArray<RunLogLines>();
+
+                    }
                 }
             }
         }
@@ -116,32 +126,42 @@ namespace DataFormats
         /// <param name="verbosity">verbosity enum</param>
         public void Writeline(string line, string source, Verbosity verbosity )
         {
-            this.Log.Add(new RunLogLines()
+            using (this.Lock.EnterScope())
             {
-                Message = line,
-                Source = source,
-                Verbosity = verbosity,
-                TimeStamp = DateTime.Now
-            });
+                this.Log.Add(new RunLogLines()
+                {
+                    Message = line,
+                    Source = source,
+                    Verbosity = verbosity,
+                    TimeStamp = DateTime.Now
+                });
+            }
         }
         /// <summary>
         /// remove selected line from log
         /// </summary>
         /// <param name="linenumber">line to remove</param>
         public void RemoveLine(int linenumber)
-        {
-            this.Log.RemoveAt(linenumber);
+        {            
+            using (this.Lock.EnterScope())
+            {
+                this.Log.RemoveAt(linenumber);
+            }
         }
         public void SaveLog()
         {
-            if (File.Exists(this.logpath)) { 
-                File.Delete(this.logpath);
-            }
-            using (StreamWriter writer = new StreamWriter(this.logpath))
+            using (this.Lock.EnterScope())
             {
-                using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                if (File.Exists(this.logpath))
                 {
-                    csvwriter.WriteRecords(this.Log);
+                    File.Delete(this.logpath);
+                }
+                using (StreamWriter writer = new StreamWriter(this.logpath))
+                {
+                    using (CsvWriter csvwriter = new CsvWriter(writer, CultureInfo.InvariantCulture))
+                    {
+                        csvwriter.WriteRecords(this.Log);
+                    }
                 }
             }
         }
@@ -151,12 +171,15 @@ namespace DataFormats
         /// <param name="cuttof">any lines older than this date will be removed from log</param>
         public void TrimLog (DateTime cuttof)
         {
-            for(int i =0; i < this.Log.Count; i++)
+            using (this.Lock.EnterScope())
             {
-                if (this.Log[i].TimeStamp > cuttof)
-                { 
-                    this.RemoveLine(i);
-                    i--;
+                for (int i = 0; i < this.Log.Count; i++)
+                {
+                    if (this.Log[i].TimeStamp > cuttof)
+                    {
+                        this.RemoveLine(i);
+                        i--;
+                    }
                 }
             }
         }

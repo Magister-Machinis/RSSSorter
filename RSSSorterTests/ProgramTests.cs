@@ -28,6 +28,10 @@ namespace RSSSorter.Tests
                 RSSSorter.Program.Main(new string[] { @".\input", @".\highval.txt", @".\discard.txt", @".\output", "30" });
                 Assert.AreEqual(true, true);
             }
+            catch(Exception ex) 
+            {
+                Assert.Fail();
+            }
             finally
             {
                 Directory.Delete(@".\input", true);
