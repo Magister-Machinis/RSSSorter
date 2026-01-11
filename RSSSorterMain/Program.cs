@@ -16,6 +16,8 @@ namespace RSSSorter
 {
     public class Program
     {
+        static RunLog runLog = new RunLog(@".\activitylog.csv");
+        static string msgtitle = "RSSSorter";
         static void Helpmenu()
         {
             Console.WriteLine("params are as follows and must be entered in order:");
@@ -32,12 +34,15 @@ namespace RSSSorter
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
-        {
+        {            
+            runLog.Writeline("RSSSorter started", msgtitle, Verbosity.INFO);
             string listfolder;
             string highvaluelist;
             string discardlist;
             string outputfolder;
             int agelimit = 30;
+
+            
             //check for help menu
             if (args.Length < 1 || args[0] == "-help" || args[0] == "/?" || args[0] == "-h")
             {
@@ -53,6 +58,7 @@ namespace RSSSorter
             else
             {
                 Console.WriteLine("Invalid folderpath for first parameter");
+                runLog.Writeline("Invalid filepath for first parameter", msgtitle, Verbosity.ERROR);
                 Helpmenu();
                 return;
             }
@@ -65,6 +71,7 @@ namespace RSSSorter
             else
             {
                 Console.WriteLine("Invalid filepath for second parameter");
+                runLog.Writeline("Invalid filepath for second parameter", msgtitle, Verbosity.ERROR);
                 Helpmenu();
                 return;
             }
@@ -77,6 +84,7 @@ namespace RSSSorter
             else
             {
                 Console.WriteLine("Invalid filepath for third parameter");
+                runLog.Writeline("Invalid filepath for third parameter", msgtitle, Verbosity.ERROR);
                 Helpmenu();
                 return;
             }
@@ -88,6 +96,7 @@ namespace RSSSorter
             else
             {
                 Console.WriteLine("Invalid folderpath for output folder");
+                runLog.Writeline("Invalid filepath for output folder", msgtitle, Verbosity.ERROR);
                 Helpmenu();
                 return;
             }
@@ -97,6 +106,7 @@ namespace RSSSorter
                 if (!int.TryParse(args[4], out agelimit))
                 {
                     Console.WriteLine("agelimit value not valid integer");
+                    runLog.Writeline("agelimit value not valid integer", msgtitle, Verbosity.ERROR);
                     Helpmenu();
                     return;
                 }
@@ -110,21 +120,24 @@ namespace RSSSorter
             if (tasks.All(i => i.Result.IsSuccess == true))
             {
                 Console.WriteLine("Processing completed successfully");
+                runLog.Writeline("Processing completed successfully", msgtitle, Verbosity.SUCCESS);
             }
             else
             {
                 Console.WriteLine("Processing of one or more feed collections has failed.");
+                runLog.Writeline("Processing of one or more feed collections has failed.", msgtitle, Verbosity.ERROR);
                 foreach(Task<ResultStatus> item in tasks)
                 {
                     if(item.Result.IsSuccess == false)
                     {
                         Console.WriteLine(item.Result.message);
+                        runLog.Writeline(item.Result.message, msgtitle, Verbosity.ERROR);
                     }
                 }
             }
             //generate main list
             MainListGen(args[3]);
-
+            runLog.Writeline("Processing complete.", msgtitle, Verbosity.INFO);
         }
 
         /// <summary>
@@ -134,6 +147,7 @@ namespace RSSSorter
         /// <exception cref="NotImplementedException"></exception>
         private static void MainListGen(string destfolder)
         {
+            runLog.Writeline("writing results to master list.",msgtitle, Verbosity.INFO);
             string MainlistPath = Path.Combine(destfolder, "MainList.csv");
             if (File.Exists(MainlistPath))
             {
@@ -172,6 +186,7 @@ namespace RSSSorter
         /// <returns></returns>
         static async Task<ResultStatus> UpdateRSSlists(FileInfo rssfile, string highvaluelist, string discardlist, string outputfolder, int agelimit)
         {
+            runLog.Writeline($"Updating data for {rssfile.Name}", msgtitle, Verbosity.INFO);
             //determine if we are dealing with a new rss feed list or not
             ResultStatus status = new ResultStatus();
             await Task.Run(() =>
@@ -180,16 +195,19 @@ namespace RSSSorter
                 {
                     if (!File.Exists(Path.Combine(outputfolder, Path.ChangeExtension(rssfile.Name, "csv"))))
                     {
+                        runLog.Writeline($"Generating new record for {rssfile.Name}",msgtitle, Verbosity.INFO);
                         status = updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, new List<CSVLINES>(), new List<CSVLINES>());
                     }
                     else
                     {
+                        runLog.Writeline($"Updating contents of {rssfile.Name}", msgtitle, Verbosity.INFO);
                         status = Oldlist(rssfile, highvaluelist, discardlist, outputfolder, agelimit);
                     }
 
                 }
                 catch (Exception e)
                 {
+                    runLog.Writeline($"Error encountered when processing {rssfile.Name}: {e.Message}", msgtitle, Verbosity.ERROR);
                     status = new ResultStatus { IsSuccess = false, message = e.Message };
                 }
             });
@@ -230,10 +248,12 @@ namespace RSSSorter
                         csvhighval = reader.GetRecords<CSVLINES>().ToList();
                     }
                 }
+                runLog.Writeline($"Successfully retrieved data for {rssfile.Name}", msgtitle, Verbosity.ERROR);
                 return updatelist(rssfile, highvaluelist, discardlist, outputfolder, agelimit, csv, csvhighval);
             }
             catch(Exception e)
             {
+                runLog.Writeline($"Error processing {rssfile.Name} : {e.Message}", msgtitle, Verbosity.ERROR);
                 return new ResultStatus { IsSuccess = false, message = e.Message };
             }
         }
@@ -301,6 +321,7 @@ namespace RSSSorter
             }
             catch(Exception e)
             {
+                runLog.Writeline($"Error when processing {rssfile.Name} : {e.Message}",msgtitle,Verbosity.ERROR);
                 return new ResultStatus { IsSuccess = false, message = e.Message };
             }
         }
