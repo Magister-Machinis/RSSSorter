@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using DataFormats;
 
 namespace RSSInterface
 {
@@ -22,7 +23,7 @@ namespace RSSInterface
         public List<FilterItem> DiscardFilters { get; set; }
         private void InitializeFilterLists()
         {
-
+            this.runLog.Writeline("Initializing filter lists", msgtitle, Verbosity.INFO);
             //confirm or initiatilize high value filters
             if (File.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "Highval.txt")))
             {
@@ -78,6 +79,7 @@ namespace RSSInterface
             {
                 if (input != "Place regex here." && !string.IsNullOrEmpty(input))
                 {
+                    this.runLog.Writeline($"Adding High Value Filter: {input}", msgtitle, Verbosity.DEBUG);
                     HighvalFilters.Add(new FilterItem()
                     {
                         Item = input,
@@ -87,6 +89,8 @@ namespace RSSInterface
 
                     HighValFilterDisplay.ItemsSource = null;
                     HighValFilterDisplay.ItemsSource = HighvalFilters;
+                    HD_Save_List.IsEnabled = true;
+                    HD_Validate_Regex.IsEnabled = true;
                 }
             }
         }
@@ -98,6 +102,7 @@ namespace RSSInterface
             {
                 if (input != "Place regex here." && !string.IsNullOrEmpty(input))
                 {
+                    this.runLog.Writeline($"Adding Discard Filter: {input}", msgtitle, Verbosity.DEBUG);
                     DiscardFilters.Add(new FilterItem()
                     {
                         Item = input,
@@ -107,6 +112,8 @@ namespace RSSInterface
 
                     DiscardFiltersDisplay.ItemsSource = null;
                     DiscardFiltersDisplay.ItemsSource = DiscardFilters;
+                    HD_Save_List.IsEnabled = true;
+                    HD_Validate_Regex.IsEnabled = true;
                 }
             }
         }
@@ -115,6 +122,7 @@ namespace RSSInterface
         {
             using (new CursorWait())
             {
+                this.runLog.Writeline("Deleting selected filters", msgtitle, Verbosity.DEBUG);
                 HighvalFilters.RemoveAll(x => x.Selected); 
                 HighValFilterDisplay.ItemsSource = null;
                 HighValFilterDisplay.ItemsSource = HighvalFilters;
@@ -129,6 +137,7 @@ namespace RSSInterface
         {
             using (new CursorWait())
             {
+                this.runLog.Writeline("Saving filter lists", msgtitle, Verbosity.INFO);
                 File.WriteAllLines(Highvalpath.Text, HighvalFilters.Select(x => x.Item).ToArray());
                 File.WriteAllLines(Discardpath.Text, DiscardFilters.Select(x => x.Item).ToArray());
             }
@@ -136,37 +145,43 @@ namespace RSSInterface
 
         private void Validate_Regex_Click(object sender, RoutedEventArgs e)
         {
-            List<string> erroredregex = new List<string>();
-            foreach (string regex in HighvalFilters.Select(x => x.Item))
+            using (new CursorWait())
             {
-                try
+                this.runLog.Writeline("Validating filter regex", msgtitle, Verbosity.INFO);
+                List<string> erroredregex = new List<string>();
+                foreach (string regex in HighvalFilters.Select(x => x.Item))
                 {
-                    Regex.Match("", regex);
+                    try
+                    {
+                        Regex.Match("", regex);
+                    }
+                    catch (ArgumentException)
+                    {
+                        erroredregex.Add(regex);
+                    }
                 }
-                catch (ArgumentException)
+                foreach (string regex in DiscardFilters.Select(x => x.Item))
                 {
-                    erroredregex.Add(regex);
+                    try
+                    {
+                        Regex.Match("", regex);
+                    }
+                    catch (ArgumentException)
+                    {
+                        erroredregex.Add(regex);
+                    }
                 }
-            }
-            foreach (string regex in DiscardFilters.Select(x => x.Item))
-            {
-                try
+                if (erroredregex.Count > 0)
                 {
-                    Regex.Match("", regex);
+                    this.runLog.Writeline("Some filters returned errors during regex validation", msgtitle, Verbosity.WARNING);
+                    string errormsg = string.Join(Environment.NewLine, erroredregex);
+                    MessageBox.Show(errormsg, "Following filters returned an error.", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                catch (ArgumentException)
+                else
                 {
-                    erroredregex.Add(regex);
+                    this.runLog.Writeline("All filters validated successfully", msgtitle, Verbosity.INFO);
+                    MessageBox.Show("All filters are valid regex", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-            }
-            if(erroredregex.Count > 0)
-            {
-                string errormsg = string.Join(Environment.NewLine, erroredregex);
-                MessageBox.Show(errormsg,"Following filters returned an error.", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            else
-            {
-                MessageBox.Show("All filters are valid regex", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }

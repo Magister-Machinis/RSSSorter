@@ -32,22 +32,25 @@ namespace RSSInterface
 
         private void InitializeFeedTab()
         {
-
-            RssEntries.Add(new RssData()
+            using (new CursorWait())
             {
-                URL = "example.com/rss",
-                Title = "Create or load rss list to populate this table.",
-                Selected = true,
-            });
+                this.runLog.Writeline("Initializing Feedlist Tab.", msgtitle, Verbosity.DEBUG);
+                RssEntries.Add(new RssData()
+                {
+                    URL = "example.com/rss",
+                    Title = "Create or load rss list to populate this table.",
+                    Selected = true,
+                });
 
-            RSSEntriesDisplay.ItemsSource = null;
-            RSSEntriesDisplay.ItemsSource = RssEntries;
+                RSSEntriesDisplay.ItemsSource = null;
+                RSSEntriesDisplay.ItemsSource = RssEntries;
 
 
-            //confirm or initiatilize feed list folder
-            if (!Directory.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists")))
-            {
-                Directory.CreateDirectory(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists"));
+                //confirm or initiatilize feed list folder
+                if (!Directory.Exists(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists")))
+                {
+                    Directory.CreateDirectory(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "RssLists"));
+                }
             }
 
         }
@@ -67,8 +70,10 @@ namespace RSSInterface
             {
                 return;
             }
+            
             using (new CursorWait())
             {
+                this.runLog.Writeline($"Creating new Feedlist at {saveFileDialog.FileName}", msgtitle, Verbosity.DEBUG);
                 Save_Feed_List.IsEnabled = true;
                 Add_Item_Feed_List.IsEnabled = true;
                 Remove_Item_Feed_List.IsEnabled = true;
@@ -95,8 +100,10 @@ namespace RSSInterface
             {
                 return;
             }
+            
             using (new CursorWait())
             {
+                this.runLog.Writeline($"Loading Feedlist from {ofd.FileName}", msgtitle, Verbosity.DEBUG);
                 Save_Feed_List.IsEnabled = true;
                 Add_Item_Feed_List.IsEnabled = true;
                 Remove_Item_Feed_List.IsEnabled = true;
@@ -126,7 +133,11 @@ namespace RSSInterface
 
         private void Save_Feedlist_Click(object sender, RoutedEventArgs e)
         {
-            File.WriteAllLines(FeedlistPath, RssEntries.Select(x => x.URL));
+            using (new CursorWait())
+            {
+                this.runLog.Writeline($"Saving Feedlist to {FeedlistPath}", msgtitle, Verbosity.DEBUG);
+                File.WriteAllLines(FeedlistPath, RssEntries.Select(x => x.URL));
+            }
         }
 
         private void Add_Item_Feedlist_Click(object sender, RoutedEventArgs e)
@@ -134,6 +145,7 @@ namespace RSSInterface
             string input = (Microsoft.VisualBasic.Interaction.InputBox("Input new rss/atom url.", "New Feed List", "Place url here.")).Trim();
             using (new CursorWait())
             {
+                this.runLog.Writeline("Adding new item to Feedlist.", msgtitle, Verbosity.DEBUG);
                 if (input != "Place url here." && !string.IsNullOrEmpty(input))
                 {
                     RssEntries.Add(new RssData()
@@ -153,6 +165,7 @@ namespace RSSInterface
         {
             using (new CursorWait())
             {
+                this.runLog.Writeline("Removing selected items from Feedlist.", msgtitle, Verbosity.DEBUG);
                 RssEntries.RemoveAll(x => x.Selected);
                 RSSEntriesDisplay.ItemsSource = null;
                 RSSEntriesDisplay.ItemsSource = RssEntries;
@@ -163,6 +176,7 @@ namespace RSSInterface
         {
             using (new CursorWait())
             {
+                this.runLog.Writeline("Retrieving Feed info for Feedlist.", msgtitle, Verbosity.DEBUG);
                 //string[] tasks = new string[RssEntries.Count-1];
 
                 //for (int i = 0; i < RssEntries.Count-1; i++)
@@ -188,11 +202,13 @@ namespace RSSInterface
         {
             try
             {
+                this.runLog.Writeline($"Fetching info for feed item {RssEntries[i].URL}", msgtitle, Verbosity.DEBUG);
                 return new RSSHandler().GetFeed(RssEntries[i].URL).Title.Text;
                 
             }
             catch(Exception e)
             {
+                this.runLog.Writeline($"Error fetching info for feed item {RssEntries[i].URL}: {e.Message}", msgtitle, Verbosity.ERROR);
                 return e.Message;
             }
             

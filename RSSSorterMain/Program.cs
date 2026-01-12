@@ -17,7 +17,7 @@ namespace RSSSorter
     public class Program
     {
         static RunLog runLog = new RunLog(@".\activitylog.csv");
-        static string msgtitle = "RSSSorter";
+        const string msgtitle = "RSSSorter";
         static void Helpmenu()
         {
             Console.WriteLine("params are as follows and must be entered in order:");
@@ -287,6 +287,7 @@ namespace RSSSorter
                     {
                         if(alert.Title == "ERROR")
                         {
+                            runLog.Writeline($"Error processing {alert.Url} : {alert.Url}", msgtitle, Verbosity.ERROR);
                             erroralerts.Add(alert);
                         }
                     }
@@ -412,6 +413,7 @@ namespace RSSSorter
             List<CSVLINES> rssCsv = new List<CSVLINES>();
             try
             {
+                runLog.Writeline($"Retrieving data from {rssurl}", msgtitle, Verbosity.INFO);
                 await Task.Run(() =>
                 {
                     SyndicationFeed syndicationFeed = new RSSHandler().GetFeed(rssurl);

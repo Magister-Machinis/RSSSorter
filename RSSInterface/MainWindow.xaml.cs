@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataFormats;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -16,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace RSSInterface
 {
@@ -25,29 +27,41 @@ namespace RSSInterface
     public partial class MainWindow : Window
     {
 
-
+        RunLog runLog;
+        const string msgtitle = "RSSGUI";
         public MainWindow()
         {
+            runLog = new RunLog(@".\activitylog.csv");
             using (new CursorWait())
             {
+                this.runLog.Writeline("Initializing GUI", msgtitle, Verbosity.INFO);
+                
                 InitializeComponent();
 
                 //initial feedlist tab
                 RssEntries = new List<RssData>();
                 InitializeFeedTab();
 
-
-
-
+                System.Windows.Application.Current.DispatcherUnhandledException += Application_DispatcherUnhandledException;
                 //initialize filter lists
                 HighvalFilters = new List<FilterItem>();
                 DiscardFilters = new List<FilterItem>();
                 InitializeFilterLists();
+                
+                //adding object references to click events for logging
+                //Create_Feedlist.Click += (object sender, RoutedEventArgs e) => { Create_Feedlist_Click(sender, e,ref runLog); };
+                
             }
 
         }
 
 
+        private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            runLog.Writeline($"Unhandled exception: {e.Exception.Message}", msgtitle, Verbosity.ERROR);
+            System.Windows.MessageBox.Show($"An unhandled exception occurred: {e.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
+        }
 
         private void RestricttoNumbers(object sender, TextCompositionEventArgs e)
         {
@@ -85,6 +99,23 @@ namespace RSSInterface
             MessageBlock.Text = "Continuing";
             ContinueButton.IsEnabled = false;
         }
-        
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            runLog.Writeline("Closing RSSGui", msgtitle, Verbosity.SUCCESS);
+            using (new CursorWait())
+            {
+                runLog.SaveLog();
+                if (HD_Save_List.IsEnabled == true)
+                {
+                    File.WriteAllLines(Highvalpath.Text, HighvalFilters.Select(x => x.Item).ToArray());
+                    File.WriteAllLines(Discardpath.Text, DiscardFilters.Select(x => x.Item).ToArray());
+                }
+                if (Save_Feed_List.IsEnabled == true)
+                {
+                    File.WriteAllLines(FeedlistPath, RssEntries.Select(x => x.URL));
+                }
+            }
+        }
     }
 }

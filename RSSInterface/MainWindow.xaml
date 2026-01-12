@@ -5,23 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RSSInterface"
         mc:Ignorable="d"
-        Title="RSS Parser Control Panel" Height="450" Width="800">
+        Title="RSS Parser Control Panel" Height="450" Width="800"
+        
+        Closing="Window_Closing">
     <Grid>
         <TabControl>
             <TabItem Header="Settings">
                 <Grid Background="#FFE5E5E5">
                     <Button Content="Set Scheduled Task" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Click="Set_Scheduled_Task_Click"/>
                     <Button Content="Remove Scheduled Task" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Click="Remove_Scheduled_Task_Click"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="167,35,0,0" VerticalAlignment="Top" Width="120" Name="ScheduleTiming" >
+                    <ComboBox HorizontalAlignment="Left" Margin="10,106,0,0" VerticalAlignment="Top" Width="120" Name="ScheduleTiming" >
                         <ComboBoxItem IsSelected="True" Content="Daily" />
                         <ComboBoxItem Content="Weekly" />
                         <ComboBoxItem Content="Monthly" />
                     </ComboBox>
-                    <TextBlock HorizontalAlignment="Left" Margin="167,14,0,0" TextWrapping="Wrap" Text="Scheduling Settings" VerticalAlignment="Top"/>
-                    <TextBox Name="RuntimeHours" HorizontalAlignment="Left" Margin="167,62,0,0" TextWrapping="Wrap" Text="Hour(24h)" VerticalAlignment="Top" Width="60" Height="22" PreviewTextInput="RestricttoNumbers"/>
-                    <TextBox Name="RunTimeMinutes" HorizontalAlignment="Left" Margin="229,64,0,0" TextWrapping="Wrap" Text="Minute" VerticalAlignment="Top" Width="58" Height="20" PreviewTextInput="RestricttoNumbers"/>
-                    <TextBox Name="Retentiontime" HorizontalAlignment="Left" Margin="167,89,0,0" TextWrapping="Wrap" Text="Days to retain entries" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="10,85,0,0" TextWrapping="Wrap" Text="Scheduling Settings" VerticalAlignment="Top"/>
+                    <TextBox Name="RuntimeHours" HorizontalAlignment="Left" Margin="10,133,0,0" TextWrapping="Wrap" Text="Hour(24h)" VerticalAlignment="Top" Width="60" Height="22" PreviewTextInput="RestricttoNumbers"/>
+                    <TextBox Name="RunTimeMinutes" HorizontalAlignment="Left" Margin="72,135,0,0" TextWrapping="Wrap" Text="Minute" VerticalAlignment="Top" Width="58" Height="20" PreviewTextInput="RestricttoNumbers"/>
+                    <TextBox Name="Retentiontime" HorizontalAlignment="Left" Margin="10,160,0,0" TextWrapping="Wrap" Text="Days to retain entries" VerticalAlignment="Top" Width="120" PreviewTextInput="RestricttoNumbers"/>
                     <Button Name="RunTaskNow" Content="Run Now" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Click="Run_now_Click" IsEnabled="False"/>
+                    <DataGrid x:Name="ActivityLogDisplay" Margin="397,0,0,0"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="330,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="20"><Run Text="Activity Log"/><LineBreak/><Run/></TextBlock>
+                    <Button Content="Refresh Log" HorizontalAlignment="Left" Margin="331,35,0,0" VerticalAlignment="Top"/>
+                    <Button Content="Trim Log" HorizontalAlignment="Left" Margin="342,60,0,0" VerticalAlignment="Top"/>
+                    <TextBox HorizontalAlignment="Left" Margin="292,85,0,0" TextWrapping="Wrap" Text="Days to retain logs" VerticalAlignment="Top" PreviewTextInput="RestricttoNumbers" Name="TrimAge"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Discard / HighVal lists">
@@ -35,13 +42,13 @@
                     <TextBlock HorizontalAlignment="Left" Margin="153,60,0,0" TextWrapping="Wrap" Text="High Value Filters" VerticalAlignment="Top"/>
                     <DataGrid Name="DiscardFiltersDisplay" Margin="397,81,0,0"/>
                     <TextBlock HorizontalAlignment="Left" Margin="559,60,0,0" TextWrapping="Wrap" Text="Discard Filters" VerticalAlignment="Top"/>
-                    <Button Content="Save Lists" HorizontalAlignment="Left" Margin="418,33,0,0" VerticalAlignment="Top" Click="Save_Filter_Lists_Click"/>
-                    <Button Content="Validate regex" HorizontalAlignment="Left" Margin="478,33,0,0" VerticalAlignment="Top" Click="Validate_Regex_Click"/>
+                    <Button Content="Save Lists" HorizontalAlignment="Left" Margin="418,33,0,0" VerticalAlignment="Top" Click="Save_Filter_Lists_Click" Name="HD_Save_List" IsEnabled="False"/>
+                    <Button Content="Validate regex" HorizontalAlignment="Left" Margin="478,33,0,0" VerticalAlignment="Top" Click="Validate_Regex_Click" Name="HD_Validate_Regex" IsEnabled="False"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Feed Lists">
                 <Grid Background="#FFE5E5E5">
-                    <Button Content="Create List" HorizontalAlignment="Left" Margin="6,10,0,0" VerticalAlignment="Top" Click="Create_Feedlist_Click"/>
+                    <Button Content="Create List" HorizontalAlignment="Left" Margin="6,10,0,0" VerticalAlignment="Top" Click="Create_Feedlist_Click" Name="Create_Feedlist"/>
                     <Button Content="Load List" HorizontalAlignment="Left" Margin="70,10,0,0" VerticalAlignment="Top" Click="Load_Feedlist_Click"/>
                     <Button Content="Save List" HorizontalAlignment="Left" Margin="126,10,0,0" VerticalAlignment="Top" Name="Save_Feed_List" IsEnabled="False" Click="Save_Feedlist_Click"/>
                     <Button Content="Add Item" HorizontalAlignment="Left" Margin="181,10,0,0" VerticalAlignment="Top" Name="Add_Item_Feed_List"  IsEnabled="False" Click="Add_Item_Feedlist_Click"/>

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using DataFormats;
 
 namespace RSSInterface
 {
@@ -16,6 +17,7 @@ namespace RSSInterface
         const string taskname = "RSStask";
         private void Set_Scheduled_Task_Click(object sender, RoutedEventArgs e)
         {
+            this.runLog.Writeline("Setting scheduled task", msgtitle, Verbosity.INFO);
             Remove_Scheduled_Task_Click(sender, e);
 
             int hour = RuntimeHours.Text != "Hour(24h)" ? int.Parse(RuntimeHours.Text) : 1,
@@ -58,6 +60,7 @@ namespace RSSInterface
         }
         private void Remove_Scheduled_Task_Click(object sender, RoutedEventArgs e)
         {
+            this.runLog.Writeline("Removing scheduled task", msgtitle, Verbosity.INFO);
             if (Check_if_Task_exists())
             {
                 using(TaskService ts = new TaskService())
@@ -72,6 +75,7 @@ namespace RSSInterface
         {
             using (new CursorWait())
             {
+                this.runLog.Writeline("Running scheduled task now", msgtitle, Verbosity.INFO);
                 Process.Start(new ProcessStartInfo("cmd", $"/c schtasks /run /tn {taskname}"));
             }
         }
