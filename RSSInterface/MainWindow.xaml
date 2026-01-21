@@ -26,8 +26,8 @@
                     <Button Name="RunTaskNow" Content="Run Now" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Click="Run_now_Click" IsEnabled="False"/>
                     <DataGrid x:Name="ActivityLogDisplay" Margin="397,0,0,0"/>
                     <TextBlock HorizontalAlignment="Left" Margin="330,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="20"><Run Text="Activity Log"/><LineBreak/><Run/></TextBlock>
-                    <Button Content="Refresh Log" HorizontalAlignment="Left" Margin="331,35,0,0" VerticalAlignment="Top"/>
-                    <Button Content="Trim Log" HorizontalAlignment="Left" Margin="342,60,0,0" VerticalAlignment="Top"/>
+                    <Button Content="Refresh Log" HorizontalAlignment="Left" Margin="331,35,0,0" VerticalAlignment="Top" Click="Refresh_log_Click"/>
+                    <Button Content="Trim Log" HorizontalAlignment="Left" Margin="342,60,0,0" VerticalAlignment="Top" Click="TrimLogAge_Click"/>
                     <TextBox HorizontalAlignment="Left" Margin="292,85,0,0" TextWrapping="Wrap" Text="Days to retain logs" VerticalAlignment="Top" PreviewTextInput="RestricttoNumbers" Name="TrimAge"/>
                 </Grid>
             </TabItem>

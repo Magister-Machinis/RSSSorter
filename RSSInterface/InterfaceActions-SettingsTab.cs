@@ -29,8 +29,9 @@ namespace RSSInterface
             ExecAction exectask = new ExecAction() 
             {
                 Path = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(),"runcmd.cmd")),
-                Arguments  = days,
-                WorkingDirectory = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory()))
+                Arguments  = days + $" \"{pwd}\"",
+                WorkingDirectory = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory())),
+                
             };
 
             switch (((ComboBoxItem)ScheduleTiming.SelectedItem).Content.ToString())
@@ -77,6 +78,34 @@ namespace RSSInterface
             {
                 this.runLog.Writeline("Running scheduled task now", msgtitle, Verbosity.INFO);
                 Process.Start(new ProcessStartInfo("cmd", $"/c schtasks /run /tn {taskname}"));
+            }
+        }
+        private void Refresh_log_Click(object sender, RoutedEventArgs e)
+        {
+            List<RunLogLines> temp = RunLog.Log;
+            this.runLog.GetLog();
+            this.runLog.Append(temp);
+            Refresh_Activity_Log();
+        }
+        private void Refresh_Activity_Log()
+        {
+            using (new CursorWait())
+            {
+                ActivityLogDisplay.ItemsSource = null;
+                ActivityLogDisplay.ItemsSource = RunLog.Log;
+            }
+        }
+
+        private void TrimLogAge_Click(object sender, RoutedEventArgs e)
+        {
+            using (new CursorWait())
+            {
+                if (TrimAge.Text != "Days to retain logs" & int.TryParse(TrimAge.Text, out int days))
+                {
+                    this.runLog.Writeline($"Trimming log entries older than {days} days", msgtitle, Verbosity.INFO);
+                    this.runLog.TrimLog(DateTime.Now.AddDays(-days));
+                    Refresh_Activity_Log();
+                }
             }
         }
     }

@@ -29,9 +29,11 @@ namespace RSSInterface
 
         RunLog runLog;
         const string msgtitle = "RSSGUI";
+        static string pwd = System.IO.Path.GetFullPath(@".\activitylog.csv");
         public MainWindow()
         {
-            runLog = new RunLog(@".\activitylog.csv");
+
+            runLog = new RunLog(pwd);
             using (new CursorWait())
             {
                 this.runLog.Writeline("Initializing GUI", msgtitle, Verbosity.INFO);
@@ -41,16 +43,18 @@ namespace RSSInterface
                 //initial feedlist tab
                 RssEntries = new List<RssData>();
                 InitializeFeedTab();
-
-                System.Windows.Application.Current.DispatcherUnhandledException += Application_DispatcherUnhandledException;
+                if (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    System.Windows.Application.Current.DispatcherUnhandledException += Application_DispatcherUnhandledException;
+                }
                 //initialize filter lists
                 HighvalFilters = new List<FilterItem>();
                 DiscardFilters = new List<FilterItem>();
                 InitializeFilterLists();
-                
+                Refresh_Activity_Log();
                 //adding object references to click events for logging
                 //Create_Feedlist.Click += (object sender, RoutedEventArgs e) => { Create_Feedlist_Click(sender, e,ref runLog); };
-                
+
             }
 
         }
@@ -58,8 +62,8 @@ namespace RSSInterface
 
         private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            runLog.Writeline($"Unhandled exception: {e.Exception.Message}", msgtitle, Verbosity.ERROR);
-            System.Windows.MessageBox.Show($"An unhandled exception occurred: {e.Exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            runLog.Writeline($"Unhandled exception: {e.Exception.Message}{System.Environment.NewLine}{System.Environment.NewLine}{e.Exception.InnerException.Message}", msgtitle, Verbosity.ERROR);
+            System.Windows.MessageBox.Show($"Unhandled exception: {e.Exception.Message}{System.Environment.NewLine}{System.Environment.NewLine}{e.Exception.InnerException.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }
 
@@ -117,5 +121,7 @@ namespace RSSInterface
                 }
             }
         }
+
+        
     }
 }

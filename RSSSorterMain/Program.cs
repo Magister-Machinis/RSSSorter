@@ -1,22 +1,23 @@
+using CsvHelper;
+using DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using CsvHelper;
-using System.Xml;
-using System.ServiceModel.Syndication;
 using System.Net.Http;
+using System.ServiceModel.Syndication;
 using System.Text.RegularExpressions;
-using DataFormats;
+using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RSSSorter
 {
     public class Program
     {
-        static RunLog runLog = new RunLog(@".\activitylog.csv");
+        static RunLog runLog;
         const string msgtitle = "RSSSorter";
         static void Helpmenu()
         {
@@ -26,6 +27,7 @@ namespace RSSSorter
             Console.WriteLine("path to ignored sources list. This is a line delimited txt file with the domains to be excluded");
             Console.WriteLine("path to folder to store output");
             Console.WriteLine("number of days to keep entry on list");
+            Console.WriteLine("(optional) path for activity log, defaults to ./activitylog.csv");
             Console.WriteLine("-h, -help, or /? will display this message");
         }
 
@@ -34,110 +36,130 @@ namespace RSSSorter
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args)
-        {            
-            runLog.Writeline("RSSSorter started", msgtitle, Verbosity.INFO);
-            string listfolder;
-            string highvaluelist;
-            string discardlist;
-            string outputfolder;
-            int agelimit = 30;
-
+        {
             
-            //check for help menu
-            if (args.Length < 1 || args[0] == "-help" || args[0] == "/?" || args[0] == "-h")
-            {
-                Helpmenu();
-                return;
-            }
 
-            //validate folderpath for rss feed lists
-            if (Directory.Exists(args[0]))
+            if (args.Length == 6)
             {
-                listfolder = args[0];
+                runLog = new RunLog(args[5]);
             }
-            else
+            else {
+                runLog = new RunLog(@".\activitylog.csv");
+            }
+            try
             {
-                Console.WriteLine("Invalid folderpath for first parameter");
-                runLog.Writeline("Invalid filepath for first parameter", msgtitle, Verbosity.ERROR);
-                Helpmenu();
-                return;
-            }
+                runLog.Writeline("RSSSorter started", msgtitle, Verbosity.INFO);
+                string listfolder;
+                string highvaluelist;
+                string discardlist;
+                string outputfolder;
+                int agelimit = 30;
 
-            //validate highvalue list
-            if (File.Exists(args[1]))
-            {
-                highvaluelist = args[1];
-            }
-            else
-            {
-                Console.WriteLine("Invalid filepath for second parameter");
-                runLog.Writeline("Invalid filepath for second parameter", msgtitle, Verbosity.ERROR);
-                Helpmenu();
-                return;
-            }
 
-            //validate discard list
-            if (File.Exists(args[2]))
-            {
-                discardlist = args[2];
-            }
-            else
-            {
-                Console.WriteLine("Invalid filepath for third parameter");
-                runLog.Writeline("Invalid filepath for third parameter", msgtitle, Verbosity.ERROR);
-                Helpmenu();
-                return;
-            }
-            //validate folderpath for output
-            if (Directory.Exists(args[3]))
-            {
-                outputfolder = args[3];
-            }
-            else
-            {
-                Console.WriteLine("Invalid folderpath for output folder");
-                runLog.Writeline("Invalid filepath for output folder", msgtitle, Verbosity.ERROR);
-                Helpmenu();
-                return;
-            }
-            //check for and validate agelimit
-            if (args.Length == 4)
-            {
-                if (!int.TryParse(args[4], out agelimit))
+                //check for help menu
+                if (args.Length < 1 || args[0] == "-help" || args[0] == "/?" || args[0] == "-h")
                 {
-                    Console.WriteLine("agelimit value not valid integer");
-                    runLog.Writeline("agelimit value not valid integer", msgtitle, Verbosity.ERROR);
                     Helpmenu();
                     return;
                 }
 
-            }
-
-            Task<ResultStatus>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(rssfile => UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
-
-            Task.WaitAll(tasks);
-
-            if (tasks.All(i => i.Result.IsSuccess == true))
-            {
-                Console.WriteLine("Processing completed successfully");
-                runLog.Writeline("Processing completed successfully", msgtitle, Verbosity.SUCCESS);
-            }
-            else
-            {
-                Console.WriteLine("Processing of one or more feed collections has failed.");
-                runLog.Writeline("Processing of one or more feed collections has failed.", msgtitle, Verbosity.ERROR);
-                foreach(Task<ResultStatus> item in tasks)
+                //validate folderpath for rss feed lists
+                if (Directory.Exists(args[0]))
                 {
-                    if(item.Result.IsSuccess == false)
+                    listfolder = args[0];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid folderpath for first parameter");
+                    runLog.Writeline("Invalid filepath for first parameter", msgtitle, Verbosity.ERROR);
+                    Helpmenu();
+                    return;
+                }
+
+                //validate highvalue list
+                if (File.Exists(args[1]))
+                {
+                    highvaluelist = args[1];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid filepath for second parameter");
+                    runLog.Writeline("Invalid filepath for second parameter", msgtitle, Verbosity.ERROR);
+                    Helpmenu();
+                    return;
+                }
+
+                //validate discard list
+                if (File.Exists(args[2]))
+                {
+                    discardlist = args[2];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid filepath for third parameter");
+                    runLog.Writeline("Invalid filepath for third parameter", msgtitle, Verbosity.ERROR);
+                    Helpmenu();
+                    return;
+                }
+                //validate folderpath for output
+                if (Directory.Exists(args[3]))
+                {
+                    outputfolder = args[3];
+                }
+                else
+                {
+                    Console.WriteLine("Invalid folderpath for output folder");
+                    runLog.Writeline("Invalid filepath for output folder", msgtitle, Verbosity.ERROR);
+                    Helpmenu();
+                    return;
+                }
+                //check for and validate agelimit
+                if (args.Length == 4)
+                {
+                    if (!int.TryParse(args[4], out agelimit))
                     {
-                        Console.WriteLine(item.Result.message);
-                        runLog.Writeline(item.Result.message, msgtitle, Verbosity.ERROR);
+                        Console.WriteLine("agelimit value not valid integer");
+                        runLog.Writeline("agelimit value not valid integer", msgtitle, Verbosity.ERROR);
+                        Helpmenu();
+                        return;
+                    }
+
+                }
+
+                Task<ResultStatus>[] tasks = Directory.GetFiles(listfolder, "*.txt").Select(rssfile => UpdateRSSlists(new FileInfo(rssfile), highvaluelist, discardlist, outputfolder, agelimit)).ToArray();
+
+                Task.WaitAll(tasks);
+
+                if (tasks.All(i => i.Result.IsSuccess == true))
+                {
+                    Console.WriteLine("Processing completed successfully");
+                    runLog.Writeline("Processing completed successfully", msgtitle, Verbosity.SUCCESS);
+                }
+                else
+                {
+                    Console.WriteLine("Processing of one or more feed collections has failed.");
+                    runLog.Writeline("Processing of one or more feed collections has failed.", msgtitle, Verbosity.ERROR);
+                    foreach (Task<ResultStatus> item in tasks)
+                    {
+                        if (item.Result.IsSuccess == false)
+                        {
+                            Console.WriteLine(item.Result.message);
+                            runLog.Writeline(item.Result.message, msgtitle, Verbosity.ERROR);
+                        }
                     }
                 }
+                //generate main list
+                MainListGen(args[3]);
             }
-            //generate main list
-            MainListGen(args[3]);
-            runLog.Writeline("Processing complete.", msgtitle, Verbosity.INFO);
+            catch (Exception e)
+            { 
+                runLog.Writeline($"Generic error encountered: {e.Message}{System.Environment.NewLine}{System.Environment.NewLine}{e.InnerException.Message}",msgtitle, Verbosity.ERROR);
+            }
+            finally
+            {
+                runLog.Writeline("Processing complete.", msgtitle, Verbosity.INFO);
+                runLog.SaveLog();
+            }
         }
 
         /// <summary>
@@ -316,7 +338,7 @@ namespace RSSSorter
                 }
                 if(erroralerts.Count > 0)
                 {
-                    return new ResultStatus { IsSuccess = false, message = String.Join(" | ", erroralerts.Select(x => x.Url) )};
+                    return new ResultStatus { IsSuccess = false, message = System.String.Join(" | ", erroralerts.Select(x => x.Url) )};
                 }
                 return new ResultStatus { IsSuccess = true};
             }

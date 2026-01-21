@@ -191,6 +191,20 @@ namespace DataFormats
             }
         }
 
+        public void Append(List<RunLogLines> newlines)
+        {
+            using (RunLog.Lock.EnterScope())
+            {
+                foreach (RunLogLines line in newlines)
+                {
+                    if (!RunLog.Log.Select(x => x.TimeStamp).Contains(line.TimeStamp))
+                    {
+                        RunLog.Log.Add(line);
+                    }
+                }
+            }
+        }
+
     }
     /// <summary>
     /// wrapper class to centralize rss/atom retrieval and parsing
